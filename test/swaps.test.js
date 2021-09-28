@@ -1,3 +1,5 @@
+const Factory = artifacts.require("SwapsFactory");
+const Router = artifacts.require("SwapsRouter");
 const Token = artifacts.require("Token");
 
 const catchRevert = require("./exceptionsHelpers.js").catchRevert;
@@ -19,38 +21,31 @@ const getLastEvent = async (eventName, instance) => {
     return events.pop().returnValues;
 };
 
-contract("Token", ([owner, user1, user2, random]) => {
+contract("Swaps", ([owner, user1, user2, random]) => {
 
-    let token;
+    let factory;
+    let router;
     let launchTime;
 
     before(async () => {
-        token = await Token.new();
+        factory = await SwapsFactory.new();
     });
 
-    describe("Token Initial Values", () => {
+    describe("Factory Initial Values", () => {
 
-        it("should have correct token name", async () => {
-            const name = await token.name();
+        it("should have correct name", async () => {
+            const name = await factory.name();
             assert.equal(
                 name,
-                "Token"
+                "Bitcoin.com"
             );
         });
 
-        it("should have correct token symbol", async () => {
-            const symbol = await token.symbol();
+        it("should have correct symbol", async () => {
+            const symbol = await factory.symbol();
             assert.equal(
                 symbol,
-                "TKN"
-            );
-        });
-
-        it("should have correct token decimals", async () => {
-            const decimals = await token.decimals();
-            assert.equal(
-                decimals,
-                18
+                "BCOM"
             );
         });
     });

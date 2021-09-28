@@ -7,6 +7,7 @@
     "scripts": {
         "chain": "ganache-cli --defaultBalanceEther 10000000 -i 5777 -p 9545 -l 12500000 -m \"urban prevent meadow draft involve security curtain robot brick question try scatter\"",
         "test-token": "npx truffle test test/token.test.js",
+        "test-swaps": "npx truffle test test/swaps.test.js",
         "test-coverage": "npx truffle run coverage",
         "flat-file": "cd contracts && truffle-flattener fileName.sol > ../flats/fileName.sol",
         "compile": "npx truffle compile",
