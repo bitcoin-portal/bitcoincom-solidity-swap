@@ -1,4 +1,4 @@
-const UniswapV2Router01 = artifacts.require("UniswapV2Router01");
+const UniswapV2Router02 = artifacts.require("UniswapV2Router02");
 
 const FACTORY = '0xd627ba3B9D89b99aa140BbdefD005e8CdF395a25';
 const WETH = '0xEb59fE75AC86dF3997A990EDe100b90DDCf9a826';
