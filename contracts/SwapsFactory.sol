@@ -1,7 +1,10 @@
-pragma solidity >=0.5.16;
+// SPDX-License-Identifier: BCOM
+
+pragma solidity ^0.8.8;
 
 interface IUniswapV2Factory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+
+    // event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
     function feeTo() external view returns (address);
     function feeToSetter() external view returns (address);
@@ -17,37 +20,38 @@ interface IUniswapV2Factory {
 }
 
 interface IUniswapV2Pair {
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
 
-    function name() external pure returns (string memory);
-    function symbol() external pure returns (string memory);
-    function decimals() external pure returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
+    // event Approval(address indexed owner, address indexed spender, uint value);
+    // event Transfer(address indexed from, address indexed to, uint value);
 
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
+    // function name() external pure returns (string memory);
+    // function symbol() external pure returns (string memory);
+    // function decimals() external pure returns (uint8);
+    // function totalSupply() external view returns (uint);
+    // function balanceOf(address owner) external view returns (uint);
+    // function allowance(address owner, address spender) external view returns (uint);
 
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-    function nonces(address owner) external view returns (uint);
+    // function approve(address spender, uint value) external returns (bool);
+    // function transfer(address to, uint value) external returns (bool);
+    // function transferFrom(address from, address to, uint value) external returns (bool);
 
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+    // function DOMAIN_SEPARATOR() external view returns (bytes32);
+    // function PERMIT_TYPEHASH() external pure returns (bytes32);
 
-    event Mint(address indexed sender, uint amount0, uint amount1);
-    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
+    // function nonces(address owner) external view returns (uint);
+    // function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
+
+    // event Mint(address indexed sender, uint amount0, uint amount1);
+    // event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+    // event Swap(
+        // address indexed sender,
+        // uint amount0In,
+        // uint amount1In,
+        // uint amount0Out,
+        // uint amount1Out,
+        // address indexed to
+    // );
+    // event Sync(uint112 reserve0, uint112 reserve1);
 
     function MINIMUM_LIQUIDITY() external pure returns (uint);
     function factory() external view returns (address);
@@ -68,8 +72,9 @@ interface IUniswapV2Pair {
 }
 
 interface IUniswapV2ERC20 {
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
+
+    // event Approval(address indexed owner, address indexed spender, uint value);
+    // event Transfer(address indexed from, address indexed to, uint value);
 
     function name() external pure returns (string memory);
     function symbol() external pure returns (string memory);
@@ -84,8 +89,8 @@ interface IUniswapV2ERC20 {
 
     function DOMAIN_SEPARATOR() external view returns (bytes32);
     function PERMIT_TYPEHASH() external pure returns (bytes32);
-    function nonces(address owner) external view returns (uint);
 
+    function nonces(address owner) external view returns (uint);
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
 }
 
@@ -110,12 +115,14 @@ interface IUniswapV2Callee {
 }
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
+
     using SafeMath for uint;
 
-    string public constant name = 'Uniswap V2';
-    string public constant symbol = 'UNI-V2';
+    string public constant name = 'Bitcoin.com Swaps';
+    string public constant symbol = 'BCOM-S';
     uint8 public constant decimals = 18;
     uint  public totalSupply;
+
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
 
@@ -127,11 +134,8 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
 
-    constructor() public {
-        uint chainId;
-        assembly {
-            chainId := chainid
-        }
+    constructor() {
+        uint chainId = block.chainid;
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
@@ -177,10 +181,12 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function transferFrom(address from, address to, uint value) external returns (bool) {
-        if (allowance[from][msg.sender] != uint(-1)) {
-            allowance[from][msg.sender] = allowance[from][msg.sender].sub(value);
-        }
+
+        allowance[from][msg.sender] =
+        allowance[from][msg.sender].sub(value);
+
         _transfer(from, to, value);
+
         return true;
     }
 
@@ -200,6 +206,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
 }
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
+
     using SafeMath  for uint;
     using UQ112x112 for uint224;
 
@@ -239,6 +246,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     event Mint(address indexed sender, uint amount0, uint amount1);
     event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+
     event Swap(
         address indexed sender,
         uint amount0In,
@@ -249,7 +257,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     );
     event Sync(uint112 reserve0, uint112 reserve1);
 
-    constructor() public {
+    constructor() UniswapV2ERC20() {
         factory = msg.sender;
     }
 
@@ -262,7 +270,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     // update reserves and, on the first call per block, price accumulators
     function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private {
-        require(balance0 <= uint112(-1) && balance1 <= uint112(-1), 'UniswapV2: OVERFLOW');
+        require(balance0 <= U112_MAX && balance1 <= U112_MAX, 'UniswapV2: OVERFLOW');
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
@@ -398,7 +406,7 @@ contract UniswapV2Factory is IUniswapV2Factory {
 
     event PairCreated(address indexed token0, address indexed token1, address pair, uint);
 
-    constructor(address _feeToSetter) public {
+    constructor(address _feeToSetter) {
         feeToSetter = _feeToSetter;
     }
 
@@ -467,8 +475,10 @@ library Math {
     }
 }
 
+uint224 constant Q112 = 2 ** 112;
+uint224 constant U112_MAX = 2 ** 112 - 1;
+
 library UQ112x112 {
-    uint224 constant Q112 = 2**112;
 
     function encode(uint112 y) internal pure returns (uint224 z) {
         z = uint224(y) * Q112; // never overflows
