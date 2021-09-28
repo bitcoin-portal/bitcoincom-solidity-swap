@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: -- 🔮 --
+// SPDX-License-Identifier: BCOM
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.8;
 
 contract Token {
 
