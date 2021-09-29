@@ -227,7 +227,7 @@ interface IWETH {
     function withdraw(uint) external;
 }
 
-contract UniswapV2Router02 is IUniswapV2Router02 {
+contract SwapsRouter is IUniswapV2Router02 {
     using SafeMath for uint;
 
     address public immutable factory;

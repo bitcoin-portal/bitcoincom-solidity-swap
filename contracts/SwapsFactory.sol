@@ -2,117 +2,7 @@
 
 pragma solidity ^0.8.8;
 
-interface IUniswapV2Factory {
-
-    // event PairCreated(address indexed token0, address indexed token1, address pair, uint);
-
-    function feeTo() external view returns (address);
-    function feeToSetter() external view returns (address);
-
-    function getPair(address tokenA, address tokenB) external view returns (address pair);
-    function allPairs(uint) external view returns (address pair);
-    function allPairsLength() external view returns (uint);
-
-    function createPair(address tokenA, address tokenB) external returns (address pair);
-
-    function setFeeTo(address) external;
-    function setFeeToSetter(address) external;
-}
-
-interface IUniswapV2Pair {
-
-    // event Approval(address indexed owner, address indexed spender, uint value);
-    // event Transfer(address indexed from, address indexed to, uint value);
-
-    // function name() external pure returns (string memory);
-    // function symbol() external pure returns (string memory);
-    // function decimals() external pure returns (uint8);
-    // function totalSupply() external view returns (uint);
-    // function balanceOf(address owner) external view returns (uint);
-    // function allowance(address owner, address spender) external view returns (uint);
-
-    // function approve(address spender, uint value) external returns (bool);
-    // function transfer(address to, uint value) external returns (bool);
-    // function transferFrom(address from, address to, uint value) external returns (bool);
-
-    // function DOMAIN_SEPARATOR() external view returns (bytes32);
-    // function PERMIT_TYPEHASH() external pure returns (bytes32);
-
-    // function nonces(address owner) external view returns (uint);
-    // function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
-
-    // event Mint(address indexed sender, uint amount0, uint amount1);
-    // event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    // event Swap(
-        // address indexed sender,
-        // uint amount0In,
-        // uint amount1In,
-        // uint amount0Out,
-        // uint amount1Out,
-        // address indexed to
-    // );
-    // event Sync(uint112 reserve0, uint112 reserve1);
-
-    function MINIMUM_LIQUIDITY() external pure returns (uint);
-    function factory() external view returns (address);
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
-    function price0CumulativeLast() external view returns (uint);
-    function price1CumulativeLast() external view returns (uint);
-    function kLast() external view returns (uint);
-
-    function mint(address to) external returns (uint liquidity);
-    function burn(address to) external returns (uint amount0, uint amount1);
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-    function skim(address to) external;
-    function sync() external;
-
-    function initialize(address, address) external;
-}
-
-interface IUniswapV2ERC20 {
-
-    // event Approval(address indexed owner, address indexed spender, uint value);
-    // event Transfer(address indexed from, address indexed to, uint value);
-
-    function name() external pure returns (string memory);
-    function symbol() external pure returns (string memory);
-    function decimals() external pure returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
-
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
-
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-
-    function nonces(address owner) external view returns (uint);
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
-}
-
-interface IERC20 {
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
-
-    function name() external view returns (string memory);
-    function symbol() external view returns (string memory);
-    function decimals() external view returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
-
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
-}
-
-interface IUniswapV2Callee {
-    function uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data) external;
-}
+import "./Interfaces.sol";
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
 
@@ -207,25 +97,28 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
 
 contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
-    using SafeMath  for uint;
-    using UQ112x112 for uint224;
+    using SafeMath for uint;
 
     uint public constant MINIMUM_LIQUIDITY = 10**3;
-    bytes4 private constant SELECTOR = bytes4(keccak256(bytes('transfer(address,uint256)')));
+
+    bytes4 private constant SELECTOR = bytes4(
+        keccak256(bytes('transfer(address,uint256)'))
+    );
 
     address public factory;
     address public token0;
     address public token1;
 
-    uint112 private reserve0;           // uses single storage slot, accessible via getReserves
-    uint112 private reserve1;           // uses single storage slot, accessible via getReserves
-    uint32  private blockTimestampLast; // uses single storage slot, accessible via getReserves
+    uint112 private reserve0;
+    uint112 private reserve1;
+    uint32  private blockTimestampLast;
 
     uint public price0CumulativeLast;
     uint public price1CumulativeLast;
     uint public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
 
     uint private unlocked = 1;
+
     modifier lock() {
         require(unlocked == 1, 'UniswapV2: LOCKED');
         unlocked = 0;
@@ -244,8 +137,18 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         require(success && (data.length == 0 || abi.decode(data, (bool))), 'UniswapV2: TRANSFER_FAILED');
     }
 
-    event Mint(address indexed sender, uint amount0, uint amount1);
-    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
+    event Mint(
+        address indexed sender,
+        uint amount0,
+        uint amount1
+    );
+
+    event Burn(
+        address indexed sender,
+        uint amount0,
+        uint amount1,
+        address indexed to
+    );
 
     event Swap(
         address indexed sender,
@@ -255,15 +158,28 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         uint amount1Out,
         address indexed to
     );
-    event Sync(uint112 reserve0, uint112 reserve1);
+
+    event Sync(
+        uint112 reserve0,
+        uint112 reserve1
+    );
 
     constructor() UniswapV2ERC20() {
         factory = msg.sender;
     }
 
     // called once by the factory at time of deployment
-    function initialize(address _token0, address _token1) external {
-        require(msg.sender == factory, 'UniswapV2: FORBIDDEN'); // sufficient check
+    function initialize(
+        address _token0,
+        address _token1
+    )
+        external
+    {
+        require(
+            msg.sender == factory,
+            'UniswapV2: FORBIDDEN'
+        );
+
         token0 = _token0;
         token1 = _token1;
     }
@@ -275,8 +191,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
             // * never overflows, and + overflow is desired
-            price0CumulativeLast += uint(UQ112x112.encode(_reserve1).uqdiv(_reserve0)) * timeElapsed;
-            price1CumulativeLast += uint(UQ112x112.encode(_reserve0).uqdiv(_reserve1)) * timeElapsed;
+            price0CumulativeLast += uint(uqdiv(encode(_reserve1), _reserve0)) * timeElapsed;
+            price1CumulativeLast += uint(uqdiv(encode(_reserve0), _reserve1)) * timeElapsed;
         }
         reserve0 = uint112(balance0);
         reserve1 = uint112(balance1);
@@ -398,7 +314,6 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 }
 
 contract SwapsFactory is IUniswapV2Factory {
-    
     address public feeTo;
     address public feeToSetter;
 
@@ -413,6 +328,10 @@ contract SwapsFactory is IUniswapV2Factory {
 
     function allPairsLength() external view returns (uint) {
         return allPairs.length;
+    }
+
+    function pairCodeHash() external pure returns (bytes32) {
+        return keccak256(type(UniswapV2Pair).creationCode);
     }
 
     function createPair(address tokenA, address tokenB) external returns (address pair) {
@@ -458,20 +377,36 @@ library SafeMath {
 }
 
 library Math {
-    function min(uint x, uint y) internal pure returns (uint z) {
-        z = x < y ? x : y;
+
+    function min(
+        uint _x,
+        uint _y
+    )
+        internal
+        pure
+        returns (uint)
+    {
+        return _x < _y ? _x : _y;
     }
 
-    function sqrt(uint y) internal pure returns (uint z) {
-        if (y > 3) {
-            z = y;
-            uint x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
+    function sqrt(
+        uint _y
+    )
+        internal
+        pure
+        returns (uint z)
+    {
+        unchecked {
+            if (_y > 3) {
+                z = _y;
+                uint x = _y / 2 + 1;
+                while (x < z) {
+                    z = x;
+                    x = (_y / x + x) / 2;
+                }
+            } else if (_y != 0) {
+                z = 1;
             }
-        } else if (y != 0) {
-            z = 1;
         }
     }
 }
@@ -479,21 +414,25 @@ library Math {
 uint224 constant Q112 = 2 ** 112;
 uint112 constant U112_MAX = 2 ** 112 - 1;
 
-library UQ112x112 {
-
-    function encode(
-        uint112 _y
-    )
-        internal
-        pure
-        returns (uint224)
-    {
-        unchecked {
-            return uint224(_y) * Q112; // never overflows
-        }
+function encode(
+    uint112 _y
+)
+    pure
+    returns (uint224)
+{
+    unchecked {
+        return uint224(_y) * Q112; // never overflows
     }
+}
 
-    function uqdiv(uint224 x, uint112 y) internal pure returns (uint224 z) {
-        z = x / uint224(y);
+function uqdiv(
+    uint224 _x,
+    uint112 _y
+)
+    pure
+    returns (uint224)
+{
+    unchecked {
+        return _x / uint224(_y); // pre-checked above zero
     }
 }
