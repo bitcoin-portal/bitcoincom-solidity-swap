@@ -1,5 +1,5 @@
 const Factory = artifacts.require("SwapsFactory");
-const Router = artifacts.require("SwapsRouter");
+// const Router = artifacts.require("SwapsRouter");
 const Token = artifacts.require("Token");
 
 const catchRevert = require("./exceptionsHelpers.js").catchRevert;
@@ -28,24 +28,16 @@ contract("Swaps", ([owner, user1, user2, random]) => {
     let launchTime;
 
     before(async () => {
-        factory = await SwapsFactory.new();
+        factory = await Factory.new(owner);
     });
 
     describe("Factory Initial Values", () => {
 
-        it("should have correct name", async () => {
-            const name = await factory.name();
+        it("should have correct feeToSetter address", async () => {
+            const feeToSetterAddress = await factory.feeToSetter();
             assert.equal(
-                name,
-                "Bitcoin.com"
-            );
-        });
-
-        it("should have correct symbol", async () => {
-            const symbol = await factory.symbol();
-            assert.equal(
-                symbol,
-                "BCOM"
+                feeToSetterAddress,
+                owner
             );
         });
     });

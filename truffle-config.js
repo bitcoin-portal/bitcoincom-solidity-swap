@@ -1,6 +1,6 @@
-const HDWalletProvider = require('@truffle/hdwallet-provider');
-const mnemonic = 'insect minimum meadow eight hard voyage buzz cotton shrimp time vague banana';
-const infura_id = '68e794f7333f47c2855ee7491aefeef4';
+// const HDWalletProvider = require('@truffle/hdwallet-provider');
+// const mnemonic = 'insect minimum meadow eight hard voyage buzz cotton shrimp time vague banana';
+// const infura_id = '68e794f7333f47c2855ee7491aefeef4';
 
 module.exports = {
     plugins: ["solidity-coverage"],
@@ -11,7 +11,7 @@ module.exports = {
             gasLimit: 8000000,
             network_id: 5777
         },
-        rinkeby: {
+        /* rinkeby: {
             provider: () => new HDWalletProvider(mnemonic, `https://rinkeby.infura.io/v3/${infura_id}`),
             network_id: 4,
             skipDryRun: true
@@ -20,7 +20,7 @@ module.exports = {
             provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/${infura_id}`),
             network_id: 3,
             skipDryRun: true
-        }
+        }*/
     },
     mocha: {
         useColors: true,
@@ -32,7 +32,7 @@ module.exports = {
     },
     compilers: {
         solc: {
-            version: "0.8.0",
+            version: "^0.8.0",
             settings: {
                 optimizer: {
                     enabled: true,

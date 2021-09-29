@@ -397,7 +397,8 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     }
 }
 
-contract UniswapV2Factory is IUniswapV2Factory {
+contract SwapsFactory is IUniswapV2Factory {
+    
     address public feeTo;
     address public feeToSetter;
 
@@ -476,12 +477,20 @@ library Math {
 }
 
 uint224 constant Q112 = 2 ** 112;
-uint224 constant U112_MAX = 2 ** 112 - 1;
+uint112 constant U112_MAX = 2 ** 112 - 1;
 
 library UQ112x112 {
 
-    function encode(uint112 y) internal pure returns (uint224 z) {
-        z = uint224(y) * Q112; // never overflows
+    function encode(
+        uint112 _y
+    )
+        internal
+        pure
+        returns (uint224)
+    {
+        unchecked {
+            return uint224(_y) * Q112; // never overflows
+        }
     }
 
     function uqdiv(uint224 x, uint112 y) internal pure returns (uint224 z) {
