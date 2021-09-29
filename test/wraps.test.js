@@ -19,7 +19,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
 
     let weth;
 
-    before(async () => {
+    beforeEach(async () => {
         weth = await Weth.new();
     });
 
@@ -90,6 +90,27 @@ contract("Weth", ([owner, alice, bob, random]) => {
         });
 
         it("should emit withdraw event", async () => {
+        });
+    });
+
+    describe("Supply functionality", () => {
+
+        it("should have correct totalSupply", async () => {
+
+            await weth.send(FOUR_ETH, {
+                from: alice
+            });
+
+            await weth.send(FIVE_ETH, {
+                from: bob
+            });
+
+            totalSupply = await weth.totalSupply();
+
+            assert.equal(
+                totalSupply,
+                NINE_ETH
+            );
         });
     });
 
