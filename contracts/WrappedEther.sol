@@ -93,11 +93,19 @@ contract WrappedEther {
         public
         returns (bool)
     {
-        return transferFrom(
+        balanceOf[msg.sender] =
+        balanceOf[msg.sender] - wad;
+
+        balanceOf[dst] =
+        balanceOf[dst] + wad;
+
+        emit Transfer(
             msg.sender,
             dst,
             wad
         );
+
+        return true;
     }
 
     function transferFrom(
@@ -115,7 +123,7 @@ contract WrappedEther {
         balanceOf[src] - wad;
 
         balanceOf[dst] =
-        balanceOf[dst] - wad;
+        balanceOf[dst] + wad;
 
         emit Transfer(
             src,

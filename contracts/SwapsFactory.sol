@@ -83,7 +83,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     }
 
     function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
-        require(deadline >= block.timestamp, 'UniswapV2: EXPIRED');
+        require(deadline >= block.timestamp, 'EXPIRED');
         bytes32 digest = keccak256(
             abi.encodePacked(
                 '\x19\x01',
@@ -92,7 +92,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
             )
         );
         address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, 'UniswapV2: INVALID_SIGNATURE');
+        require(recoveredAddress != address(0) && recoveredAddress == owner, 'INVALID_SIGNATURE');
         _approve(owner, spender, value);
     }
 }
@@ -122,7 +122,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     uint private unlocked = 1;
 
     modifier lock() {
-        require(unlocked == 1, 'UniswapV2: LOCKED');
+        require(unlocked == 1, 'LOCKED');
         unlocked = 0;
         _;
         unlocked = 1;
@@ -136,7 +136,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     function _safeTransfer(address token, address to, uint value) private {
         (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'UniswapV2: TRANSFER_FAILED');
+        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER_FAILED');
     }
 
     event Mint(
@@ -179,7 +179,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
     {
         require(
             msg.sender == factory,
-            'UniswapV2: FORBIDDEN'
+            'FORBIDDEN'
         );
 
         token0 = _token0;
@@ -188,7 +188,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     // update reserves and, on the first call per block, price accumulators
     function _update(uint balance0, uint balance1, uint112 _reserve0, uint112 _reserve1) private {
-        require(balance0 <= U112_MAX && balance1 <= U112_MAX, 'UniswapV2: OVERFLOW');
+        require(balance0 <= U112_MAX && balance1 <= U112_MAX, 'OVERFLOW');
         uint32 blockTimestamp = uint32(block.timestamp % 2**32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast; // overflow is desired
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
@@ -239,7 +239,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         } else {
             liquidity = Math.min(amount0.mul(_totalSupply) / _reserve0, amount1.mul(_totalSupply) / _reserve1);
         }
-        require(liquidity > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED');
+        require(liquidity > 0, 'INSUFFICIENT_LIQUIDITY_MINTED');
         _mint(to, liquidity);
 
         _update(balance0, balance1, _reserve0, _reserve1);
@@ -260,7 +260,7 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
         amount0 = liquidity.mul(balance0) / _totalSupply; // using balances ensures pro-rata distribution
         amount1 = liquidity.mul(balance1) / _totalSupply; // using balances ensures pro-rata distribution
-        require(amount0 > 0 && amount1 > 0, 'UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED');
+        require(amount0 > 0 && amount1 > 0, 'INSUFFICIENT_LIQUIDITY_BURNED');
         _burn(address(this), liquidity);
         _safeTransfer(_token0, to, amount0);
         _safeTransfer(_token1, to, amount1);
@@ -274,16 +274,16 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external lock {
-        require(amount0Out > 0 || amount1Out > 0, 'UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT');
+        require(amount0Out > 0 || amount1Out > 0, 'INSUFFICIENT_OUTPUT_AMOUNT');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
-        require(amount0Out < _reserve0 && amount1Out < _reserve1, 'UniswapV2: INSUFFICIENT_LIQUIDITY');
+        require(amount0Out < _reserve0 && amount1Out < _reserve1, 'INSUFFICIENT_LIQUIDITY');
 
         uint balance0;
         uint balance1;
         { // scope for _token{0,1}, avoids stack too deep errors
         address _token0 = token0;
         address _token1 = token1;
-        require(to != _token0 && to != _token1, 'UniswapV2: INVALID_TO');
+        require(to != _token0 && to != _token1, 'INVALID_TO');
         if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
         if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
         if (data.length > 0) IUniswapV2Callee(to).uniswapV2Call(msg.sender, amount0Out, amount1Out, data);
@@ -292,11 +292,11 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         }
         uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
         uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
-        require(amount0In > 0 || amount1In > 0, 'UniswapV2: INSUFFICIENT_INPUT_AMOUNT');
+        require(amount0In > 0 || amount1In > 0, 'INSUFFICIENT_INPUT_AMOUNT');
         { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
         uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
         uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-        require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'UniswapV2: K');
+        require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'K');
         }
 
         _update(balance0, balance1, _reserve0, _reserve1);
@@ -316,13 +316,20 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
 }
 
 contract SwapsFactory is IUniswapV2Factory {
+
     address public feeTo;
     address public feeToSetter;
 
     mapping(address => mapping(address => address)) public getPair;
+
     address[] public allPairs;
 
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint);
+    event PairCreated(
+        address indexed token0,
+        address indexed token1,
+        address pair,
+        uint
+    );
 
     constructor(address _feeToSetter) {
         feeToSetter = _feeToSetter;
@@ -337,10 +344,10 @@ contract SwapsFactory is IUniswapV2Factory {
     }
 
     function createPair(address tokenA, address tokenB) external returns (address pair) {
-        require(tokenA != tokenB, 'UniswapV2: IDENTICAL_ADDRESSES');
+        require(tokenA != tokenB, 'IDENTICAL_ADDRESSES');
         (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), 'UniswapV2: ZERO_ADDRESS');
-        require(getPair[token0][token1] == address(0), 'UniswapV2: PAIR_EXISTS'); // single check is sufficient
+        require(token0 != address(0), 'ZERO_ADDRESS');
+        require(getPair[token0][token1] == address(0), 'PAIR_EXISTS'); // single check is sufficient
         bytes memory bytecode = type(UniswapV2Pair).creationCode;
         bytes32 salt = keccak256(abi.encodePacked(token0, token1));
         assembly {
@@ -354,12 +361,12 @@ contract SwapsFactory is IUniswapV2Factory {
     }
 
     function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+        require(msg.sender == feeToSetter, 'FORBIDDEN');
         feeTo = _feeTo;
     }
 
     function setFeeToSetter(address _feeToSetter) external {
-        require(msg.sender == feeToSetter, 'UniswapV2: FORBIDDEN');
+        require(msg.sender == feeToSetter, 'FORBIDDEN');
         feeToSetter = _feeToSetter;
     }
 }

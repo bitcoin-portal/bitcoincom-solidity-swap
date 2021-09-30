@@ -13,7 +13,7 @@ const FOUR_ETH = web3.utils.toWei("4");
 const FIVE_ETH = web3.utils.toWei("5");
 const NINE_ETH = web3.utils.toWei("9");
 
-const STATIC_SUPPLY = web3.utils.toWei("5000000");
+const STATIC_SUPPLY = web3.utils.toWei("500");
 
 const getLastEvent = async (eventName, instance) => {
     const events = await instance.getPastEvents(eventName, {
@@ -26,16 +26,18 @@ const getLastEvent = async (eventName, instance) => {
 contract("Swaps", ([owner, alice, bob, random]) => {
 
     let weth;
+    let token;
     let factory;
     let router;
     let launchTime;
 
-    before(async () => {
+    beforeEach(async () => {
         weth = await Weth.new();
+        token = await Token.new();
         factory = await Factory.new(owner);
         router = await Router.new(
             factory.address,
-            weth. address
+            weth.address
         );
     });
 
@@ -51,10 +53,95 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
         it("should have correct pairCodeHash value", async () => {
             const pairCodeHash = await factory.pairCodeHash();
-            const expectedValue = '0x9bec311a9347a183370c3cbe13f2b2a92d1e671699913e9ed34e0875311e9c08';
+            const expectedValue = '0xd130987f0e1376a13e4588708a36cb0061ad45a2031e7684ba8b02004f8ad2a9';
             assert.equal(
                 pairCodeHash,
                 expectedValue
+            );
+        });
+
+        // pair contract
+        it.skip("should have correct PERMIT_TYPEHASH value", async () => {
+            const permitHash = await factory.PERMIT_TYPEHASH();
+            const expectedValue = '0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9';
+            assert.equal(
+                permitHash,
+                expectedValue
+            );
+        });
+    });
+
+    describe("Router Pairs", () => {
+        it("should correctly generate pair address", async () => {
+
+            await factory.createPair(
+                token.address,
+                weth.address
+            );
+
+            const { token0, token1, pair } = await getLastEvent(
+                "PairCreated",
+                factory
+            );
+
+            const lookupAddress = await router.pairLookup(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            assert.equal(
+                pair,
+                lookupAddress
+            );
+        });
+    });
+
+    describe("Router Liquidity", () => {
+
+        it("should correctly generate pair address", async () => {
+
+            await factory.createPair(
+                token.address,
+                weth.address
+            );
+
+            const { token0, token1, pair } = await getLastEvent(
+                "PairCreated",
+                factory
+            );
+
+            const lookupAddress = await router.pairLookup(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            assert.equal(
+                pair,
+                lookupAddress
+            );
+        });
+
+        it("should be able to addLiquidityETH", async () => {
+
+            pairCodeHash = await factory.pairCodeHash();
+            supply = await token.balanceOf(owner);
+
+            await token.approve(
+                router.address,
+                STATIC_SUPPLY,
+                {from: owner}
+            );
+
+            await router.addLiquidityETH(
+                token.address,
+                STATIC_SUPPLY,
+                0,
+                0,
+                owner,
+                170000000000,
+                {from: owner, value: FIVE_ETH}
             );
         });
     });

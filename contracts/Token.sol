@@ -21,7 +21,7 @@ contract Token {
         _symbol = "TKN";
         _decimals = 18;
 
-        _totalSupply = 1000000000000000000000000;
+        _totalSupply = 90000000000000000000000000000;
         _balances[msg.sender] = _totalSupply;
     }
 

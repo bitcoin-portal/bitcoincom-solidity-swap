@@ -24,6 +24,7 @@ interface IUniswapV2Factory {
 }
 
 interface IUniswapV2Pair {
+
     event Approval(address indexed owner, address indexed spender, uint value);
     event Transfer(address indexed from, address indexed to, uint value);
 
@@ -241,7 +242,10 @@ contract SwapsRouter is IUniswapV2Router02 {
         uint amountBDesired,
         uint amountAMin,
         uint amountBMin
-    ) internal virtual returns (uint amountA, uint amountB) {
+    )
+        internal
+        returns (uint amountA, uint amountB)
+    {
         // create the pair if it doesn't exist yet
         if (IUniswapV2Factory(factory).getPair(tokenA, tokenB) == address(0)) {
             IUniswapV2Factory(factory).createPair(tokenA, tokenB);
@@ -280,12 +284,17 @@ contract SwapsRouter is IUniswapV2Router02 {
     }
     function addLiquidityETH(
         address token,
-        uint amountTokenDesired,
-        uint amountTokenMin,
-        uint amountETHMin,
+        uint256 amountTokenDesired,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
         address to,
-        uint deadline
-    ) external virtual override payable ensure(deadline) returns (uint amountToken, uint amountETH, uint liquidity) {
+        uint256 deadline
+    )
+        external
+        payable
+        ensure(deadline)
+        returns (uint amountToken, uint amountETH, uint liquidity)
+    {
         (amountToken, amountETH) = _addLiquidity(
             token,
             WETH,
@@ -294,13 +303,41 @@ contract SwapsRouter is IUniswapV2Router02 {
             amountTokenMin,
             amountETHMin
         );
-        address pair = UniswapV2Library.pairFor(factory, token, WETH);
-        safeTransferFrom(token, msg.sender, pair, amountToken);
-        IWETH(WETH).deposit{value: amountETH}();
-        assert(IWETH(WETH).transfer(pair, amountETH));
+
+        address pair = UniswapV2Library.pairFor(
+            factory,
+            token,
+            WETH
+        );
+
+        safeTransferFrom(
+            token,
+            msg.sender,
+            pair,
+            amountToken
+        );
+
+        IWETH(WETH).deposit{
+            value: amountETH
+        }();
+
+        assert(
+            IWETH(WETH).transfer(
+                pair,
+                amountETH
+            )
+        );
+
         liquidity = IUniswapV2Pair(pair).mint(to);
-        // refund dust eth, if any
-        if (msg.value > amountETH) safeTransferETH(msg.sender, msg.value - amountETH);
+
+        if (msg.value > amountETH) {
+            unchecked {
+                safeTransferETH(
+                    msg.sender,
+                    msg.value - amountETH
+                );
+            }
+        }
     }
 
     // **** REMOVE LIQUIDITY ****
@@ -647,28 +684,51 @@ contract SwapsRouter is IUniswapV2Router02 {
     {
         return UniswapV2Library.getAmountsIn(factory, amountOut, path);
     }
+
+    function pairLookup(address factory, address tokenA, address tokenB) external pure returns (address pair) {
+        return UniswapV2Library.pairFor(factory, tokenA, tokenB);
+    }
+
 }
 
 library UniswapV2Library {
 
     using SafeMath for uint;
 
-    // returns sorted token addresses, used to handle return values from pairs sorted in this order
-    function sortTokens(address tokenA, address tokenB) internal pure returns (address token0, address token1) {
-        require(tokenA != tokenB, 'IDENTICAL_ADDRESSES');
-        (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), 'ZERO_ADDRESS');
+    function sortTokens(
+        address tokenA,
+        address tokenB
+    )
+        internal
+        pure
+        returns (
+            address token0,
+            address token1
+        )
+    {
+        require(
+            tokenA != tokenB,
+            'IDENTICAL_ADDRESSES'
+        );
+
+        (token0, token1) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
+
+        require(
+            token0 != address(0x0),
+            'ZERO_ADDRESS'
+        );
     }
 
-    // calculates the CREATE2 address for a pair without making any external calls
     function pairFor(address factory, address tokenA, address tokenB) internal pure returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
-        pair = address(bytes20(sha256(abi.encodePacked(
-                hex'ff',
-                factory,
-                keccak256(abi.encodePacked(token0, token1)),
-                hex'96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f' // init code hash
-            ))));
+        pair = address(uint160(uint(keccak256(abi.encodePacked(
+            hex'ff',
+            factory,
+            keccak256(abi.encodePacked(token0, token1)),
+            hex'd130987f0e1376a13e4588708a36cb0061ad45a2031e7684ba8b02004f8ad2a9'
+        )))));
     }
 
     // fetches and sorts the reserves for a pair
