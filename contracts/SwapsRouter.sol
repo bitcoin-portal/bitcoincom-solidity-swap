@@ -685,8 +685,16 @@ contract SwapsRouter is IUniswapV2Router02 {
         return UniswapV2Library.getAmountsIn(factory, amountOut, path);
     }
 
-    function pairLookup(address factory, address tokenA, address tokenB) external pure returns (address pair) {
-        return UniswapV2Library.pairFor(factory, tokenA, tokenB);
+    function pairLookup(
+        address _factory,
+        address _tokenA,
+        address _tokenB
+    )
+        external
+        pure
+        returns (address)
+    {
+        return UniswapV2Library.pairFor(_factory, _tokenA, _tokenB);
     }
 
 }
