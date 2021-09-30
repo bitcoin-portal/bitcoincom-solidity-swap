@@ -55,6 +55,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
         it("should have correct pairCodeHash value", async () => {
             const pairCodeHash = await factory.pairCodeHash();
+            // const expectedValue = '0x4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80';
             const expectedValue = '0xd130987f0e1376a13e4588708a36cb0061ad45a2031e7684ba8b02004f8ad2a9';
             assert.equal(
                 pairCodeHash,
