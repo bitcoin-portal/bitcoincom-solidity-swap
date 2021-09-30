@@ -23,7 +23,7 @@ const getLastEvent = async (eventName, instance) => {
     return events.pop().returnValues;
 };
 
-contract("Swaps", ([owner, user1, user2, random]) => {
+contract("Swaps", ([owner, alice, bob, random]) => {
 
     let weth;
     let factory;
@@ -51,7 +51,7 @@ contract("Swaps", ([owner, user1, user2, random]) => {
 
         it("should have correct pairCodeHash value", async () => {
             const pairCodeHash = await factory.pairCodeHash();
-            const expectedValue = '0xe24fce0a3cc0ec9e09f37d8b9aa380dbd0ee348a6b1f2ae2378ac1414c8e8390';
+            const expectedValue = '0x9bec311a9347a183370c3cbe13f2b2a92d1e671699913e9ed34e0875311e9c08';
             assert.equal(
                 pairCodeHash,
                 expectedValue
