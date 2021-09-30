@@ -212,13 +212,17 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 contract SwapsRouter is IUniswapV2Router02 {
+
     using SafeMath for uint;
 
     address public immutable factory;
     address public immutable WETH;
 
-    modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'EXPIRED');
+    modifier ensure(uint256 _deadline) {
+        require(
+            _deadline >= block.timestamp,
+            'DEADLINE_EXPIRED'
+        );
         _;
     }
 
@@ -231,41 +235,70 @@ contract SwapsRouter is IUniswapV2Router02 {
     }
 
     receive() external payable {
-        assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
+        require(
+            msg.sender == WETH,
+            'INVALID_ETH_SENDER'
+        );
     }
 
     // **** ADD LIQUIDITY ****
     function _addLiquidity(
         address tokenA,
         address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        uint256 amountAMin,
+        uint256 amountBMin
     )
         internal
-        returns (uint amountA, uint amountB)
+        returns (uint256, uint256)
     {
-        // create the pair if it doesn't exist yet
         if (IUniswapV2Factory(factory).getPair(tokenA, tokenB) == address(0)) {
             IUniswapV2Factory(factory).createPair(tokenA, tokenB);
         }
-        (uint reserveA, uint reserveB) = UniswapV2Library.getReserves(factory, tokenA, tokenB);
+
+        (uint256 reserveA, uint256 reserveB) = UniswapV2Library.getReserves(
+            factory,
+            tokenA,
+            tokenB
+        );
+
         if (reserveA == 0 && reserveB == 0) {
-            (amountA, amountB) = (amountADesired, amountBDesired);
-        } else {
-            uint amountBOptimal = UniswapV2Library.quote(amountADesired, reserveA, reserveB);
-            if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, 'INSUFFICIENT_B_AMOUNT');
-                (amountA, amountB) = (amountADesired, amountBOptimal);
-            } else {
-                uint amountAOptimal = UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
-                assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, 'INSUFFICIENT_A_AMOUNT');
-                (amountA, amountB) = (amountAOptimal, amountBDesired);
-            }
+            return (amountADesired, amountBDesired);
         }
+
+        uint256 amountBOptimal = UniswapV2Library.quote(
+            amountADesired,
+            reserveA,
+            reserveB
+        );
+
+        if (amountBOptimal <= amountBDesired) {
+
+            require(
+                amountBOptimal >= amountBMin,
+                'INSUFFICIENT_B_AMOUNT'
+            );
+
+            return (amountADesired, amountBOptimal);
+        }
+
+        uint256 amountAOptimal = UniswapV2Library.quote(
+            amountBDesired,
+            reserveB,
+            reserveA
+        );
+
+        assert(amountAOptimal <= amountADesired);
+
+        require(
+            amountAOptimal >= amountAMin,
+            'INSUFFICIENT_A_AMOUNT'
+        );
+
+        return (amountAOptimal, amountBDesired);
     }
+    
     function addLiquidity(
         address tokenA,
         address tokenB,

@@ -2,6 +2,7 @@ const Token = artifacts.require("Token");
 const Weth = artifacts.require("WrappedEther");
 const Router = artifacts.require("SwapsRouter");
 const Factory = artifacts.require("SwapsFactory");
+const IUniswapV2Pair = artifacts.require("IUniswapV2Pair");
 
 const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 
@@ -31,7 +32,8 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     let router;
     let launchTime;
 
-    beforeEach(async () => {
+    // beforeEach(async () => {
+    before(async () => {
         weth = await Weth.new();
         token = await Token.new();
         factory = await Factory.new(owner);
@@ -72,6 +74,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     });
 
     describe("Router Pairs", () => {
+
         it("should correctly generate pair address", async () => {
 
             await factory.createPair(
@@ -99,31 +102,9 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
     describe("Router Liquidity", () => {
 
-        it("should correctly generate pair address", async () => {
-
-            await factory.createPair(
-                token.address,
-                weth.address
-            );
-
-            const { token0, token1, pair } = await getLastEvent(
-                "PairCreated",
-                factory
-            );
-
-            const lookupAddress = await router.pairLookup(
-                factory.address,
-                token.address,
-                weth.address
-            );
-
-            assert.equal(
-                pair,
-                lookupAddress
-            );
-        });
-
         it("should be able to addLiquidityETH", async () => {
+
+            const depositAmount = FIVE_ETH;
 
             pairCodeHash = await factory.pairCodeHash();
             supply = await token.balanceOf(owner);
@@ -141,8 +122,81 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 0,
                 owner,
                 170000000000,
-                {from: owner, value: FIVE_ETH}
+                {from: owner, value: depositAmount}
             );
+
+            const pairAddress = await router.pairLookup(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            pair = await IUniswapV2Pair.at(pairAddress);
+            wethBalance = await weth.balanceOf(pairAddress);
+            tokenBalance = await token.balanceOf(pairAddress);
+
+            liquidityTokens = await pair.balanceOf(owner);
+
+            assert.isAbove(
+                parseInt(liquidityTokens),
+                parseInt(0)
+            );
+
+            assert.equal(
+                tokenBalance,
+                STATIC_SUPPLY
+            );
+
+            assert.equal(
+                wethBalance,
+                depositAmount
+            );
+        });
+
+        it.skip("should be able to removeLiquidityETH", async () => {
+        });
+
+    });
+
+    describe("Router Swap", () => {
+        it("should be able to perform a swap (ETH > ERC20)", async () => {
+
+            const pairAddress = await router.pairLookup(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            wethBalanceBefore = await weth.balanceOf(pairAddress);
+
+            const swapAmount = FOUR_ETH;
+
+            const path = [
+                weth.address,
+                token.address
+            ];
+
+            await router.swapExactETHForTokens(
+                0,
+                path,
+                owner,
+                170000000000,
+                {from: owner, value: swapAmount}
+            );
+
+            pair = await IUniswapV2Pair.at(pairAddress);
+            wethBalanceAfter = await weth.balanceOf(pairAddress);
+
+            assert.equal(
+                parseInt(wethBalanceBefore) + parseInt(swapAmount),
+                parseInt(wethBalanceAfter)
+            );
+        });
+
+        it.skip("should be able to perform a swap (ERC20 > ETH)", async () => {
+        });
+
+        it.skip("should be able to perform a swap (ERC20 > ERC20)", async () => {
         });
     });
 });
