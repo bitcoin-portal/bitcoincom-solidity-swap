@@ -2,6 +2,7 @@
 
 pragma solidity ^0.8.8;
 
+import "./IWETH.sol";
 import "./IERC20.sol";
 import "./SafeMath.sol";
 
@@ -206,12 +207,6 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
         address to,
         uint deadline
     ) external;
-}
-
-interface IWETH {
-    function deposit() external payable;
-    function transfer(address to, uint value) external returns (bool);
-    function withdraw(uint) external;
 }
 
 contract SwapsRouter is IUniswapV2Router02 {
