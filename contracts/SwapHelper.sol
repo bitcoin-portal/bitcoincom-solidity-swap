@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BCOM
 
-pragma solidity ^0.8.8;
+pragma solidity ^0.8.9;
 
 uint224 constant Q112 = 2 ** 112;
 uint112 constant U112_MAX = 2 ** 112 - 1;
