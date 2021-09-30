@@ -3,6 +3,8 @@
 pragma solidity ^0.8.8;
 
 import "./Interfaces.sol";
+import "./SwapHelper.sol";
+import "./SafeMath.sol";
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
 
@@ -362,20 +364,6 @@ contract SwapsFactory is IUniswapV2Factory {
     }
 }
 
-library SafeMath {
-    function add(uint x, uint y) internal pure returns (uint z) {
-        require((z = x + y) >= x, 'ds-math-add-overflow');
-    }
-
-    function sub(uint x, uint y) internal pure returns (uint z) {
-        require((z = x - y) <= x, 'ds-math-sub-underflow');
-    }
-
-    function mul(uint x, uint y) internal pure returns (uint z) {
-        require(y == 0 || (z = x * y) / y == x, 'ds-math-mul-overflow');
-    }
-}
-
 library Math {
 
     function min(
@@ -408,31 +396,5 @@ library Math {
                 z = 1;
             }
         }
-    }
-}
-
-uint224 constant Q112 = 2 ** 112;
-uint112 constant U112_MAX = 2 ** 112 - 1;
-
-function encode(
-    uint112 _y
-)
-    pure
-    returns (uint224)
-{
-    unchecked {
-        return uint224(_y) * Q112; // never overflows
-    }
-}
-
-function uqdiv(
-    uint224 _x,
-    uint112 _y
-)
-    pure
-    returns (uint224)
-{
-    unchecked {
-        return _x / uint224(_y); // pre-checked above zero
     }
 }
