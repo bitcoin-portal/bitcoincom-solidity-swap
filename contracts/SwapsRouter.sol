@@ -211,13 +211,17 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 contract SwapsRouter is IUniswapV2Router02 {
+
     using SafeMath for uint;
 
     address public immutable factory;
     address public immutable WETH;
 
     modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'EXPIRED');
+        require(
+            deadline >= block.timestamp,
+            'SwapsRouter: EXPIRED'
+        );
         _;
     }
 
@@ -230,38 +234,64 @@ contract SwapsRouter is IUniswapV2Router02 {
     }
 
     receive() external payable {
-        assert(msg.sender == WETH); // only accept ETH via fallback from the WETH contract
+        assert(msg.sender == WETH);
     }
 
-    // **** ADD LIQUIDITY ****
     function _addLiquidity(
         address tokenA,
         address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin
-    ) internal virtual returns (uint amountA, uint amountB) {
-        // create the pair if it doesn't exist yet
-        if (IUniswapV2Factory(factory).getPair(tokenA, tokenB) == address(0)) {
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        uint256 amountAMin,
+        uint256 amountBMin
+    )
+        internal
+        returns (uint256, uint256)
+    {
+
+        if (IUniswapV2Factory(factory).getPair(tokenA, tokenB) == address(0x0)) {
             IUniswapV2Factory(factory).createPair(tokenA, tokenB);
         }
-        (uint reserveA, uint reserveB) = UniswapV2Library.getReserves(factory, tokenA, tokenB);
+
+        (uint reserveA, uint reserveB) = UniswapV2Library.getReserves(
+            factory,
+            tokenA,
+            tokenB
+        );
+
         if (reserveA == 0 && reserveB == 0) {
-            (amountA, amountB) = (amountADesired, amountBDesired);
-        } else {
-            uint amountBOptimal = UniswapV2Library.quote(amountADesired, reserveA, reserveB);
-            if (amountBOptimal <= amountBDesired) {
-                require(amountBOptimal >= amountBMin, 'INSUFFICIENT_B_AMOUNT');
-                (amountA, amountB) = (amountADesired, amountBOptimal);
-            } else {
-                uint amountAOptimal = UniswapV2Library.quote(amountBDesired, reserveB, reserveA);
-                assert(amountAOptimal <= amountADesired);
-                require(amountAOptimal >= amountAMin, 'INSUFFICIENT_A_AMOUNT');
-                (amountA, amountB) = (amountAOptimal, amountBDesired);
-            }
+            return (amountADesired, amountBDesired);
         }
+
+        uint amountBOptimal = UniswapV2Library.quote(
+            amountADesired,
+            reserveA,
+            reserveB
+        );
+
+        if (amountBOptimal <= amountBDesired) {
+            require(
+                amountBOptimal >= amountBMin,
+                'INSUFFICIENT_B_AMOUNT'
+            );
+            return (amountADesired, amountBOptimal);
+        }
+
+        uint amountAOptimal = UniswapV2Library.quote(
+            amountBDesired,
+            reserveB,
+            reserveA
+        );
+
+        assert(amountAOptimal <= amountADesired);
+
+        require(
+            amountAOptimal >= amountAMin,
+            'INSUFFICIENT_A_AMOUNT'
+        );
+        return (amountAOptimal, amountBDesired);
     }
+
     function addLiquidity(
         address tokenA,
         address tokenB,
@@ -303,7 +333,6 @@ contract SwapsRouter is IUniswapV2Router02 {
         if (msg.value > amountETH) safeTransferETH(msg.sender, msg.value - amountETH);
     }
 
-    // **** REMOVE LIQUIDITY ****
     function removeLiquidity(
         address tokenA,
         address tokenB,
@@ -321,6 +350,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         require(amountA >= amountAMin, 'INSUFFICIENT_A_AMOUNT');
         require(amountB >= amountBMin, 'INSUFFICIENT_B_AMOUNT');
     }
+
     function removeLiquidityETH(
         address token,
         uint liquidity,
@@ -342,6 +372,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amountETH);
         safeTransferETH(to, amountETH);
     }
+
     function removeLiquidityWithPermit(
         address tokenA,
         address tokenB,
@@ -357,6 +388,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         IUniswapV2Pair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountA, amountB) = removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
     }
+
     function removeLiquidityETHWithPermit(
         address token,
         uint liquidity,
@@ -394,6 +426,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amountETH);
         safeTransferETH(to, amountETH);
     }
+
     function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
         address token,
         uint liquidity,
@@ -411,8 +444,6 @@ contract SwapsRouter is IUniswapV2Router02 {
         );
     }
 
-    // **** SWAP ****
-    // requires the initial amount to have already been sent to the first pair
     function _swap(uint[] memory amounts, address[] memory path, address _to) internal virtual {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
@@ -425,6 +456,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             );
         }
     }
+
     function swapExactTokensForTokens(
         uint amountIn,
         uint amountOutMin,
@@ -439,6 +471,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         );
         _swap(amounts, path, to);
     }
+
     function swapTokensForExactTokens(
         uint amountOut,
         uint amountInMax,
@@ -453,6 +486,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         );
         _swap(amounts, path, to);
     }
+
     function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
         external
         virtual
@@ -468,6 +502,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         assert(IWETH(WETH).transfer(UniswapV2Library.pairFor(factory, path[0], path[1]), amounts[0]));
         _swap(amounts, path, to);
     }
+
     function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
         external
         virtual
@@ -485,6 +520,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         safeTransferETH(to, amounts[amounts.length - 1]);
     }
+
     function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
         external
         virtual
@@ -502,6 +538,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         IWETH(WETH).withdraw(amounts[amounts.length - 1]);
         safeTransferETH(to, amounts[amounts.length - 1]);
     }
+
     function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
         external
         virtual
@@ -522,6 +559,7 @@ contract SwapsRouter is IUniswapV2Router02 {
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
     // requires the initial amount to have already been sent to the first pair
+
     function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
@@ -540,6 +578,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             pair.swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
+
     function swapExactTokensForTokensSupportingFeeOnTransferTokens(
         uint amountIn,
         uint amountOutMin,
@@ -557,6 +596,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             'INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
+
     function swapExactETHForTokensSupportingFeeOnTransferTokens(
         uint amountOutMin,
         address[] calldata path,
