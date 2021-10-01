@@ -4,24 +4,10 @@ pragma solidity ^0.8.9;
 
 import "./IWETH.sol";
 import "./IERC20.sol";
+import "./IUniswapV2Factory.sol";
+
 import "./SafeMath.sol";
 import "./TransferHelper.sol";
-
-interface IUniswapV2Factory {
-    event PairCreated(address indexed token0, address indexed token1, address pair, uint);
-
-    function feeTo() external view returns (address);
-    function feeToSetter() external view returns (address);
-
-    function getPair(address tokenA, address tokenB) external view returns (address pair);
-    function allPairs(uint) external view returns (address pair);
-    function allPairsLength() external view returns (uint);
-
-    function createPair(address tokenA, address tokenB) external returns (address pair);
-
-    function setFeeTo(address) external;
-    function setFeeToSetter(address) external;
-}
 
 interface IUniswapV2Pair {
 
@@ -769,7 +755,7 @@ library UniswapV2Library {
             factory,
             keccak256(abi.encodePacked(token0, token1)),
             // hex'4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80'
-            hex'd130987f0e1376a13e4588708a36cb0061ad45a2031e7684ba8b02004f8ad2a9'
+            hex'f04fd5e3f5b30af6dd14b39fcd43f69a796a3c943f942c59322b1c8639390f89'
         )))));
     }
 
