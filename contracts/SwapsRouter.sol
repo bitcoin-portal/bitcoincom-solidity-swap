@@ -4,62 +4,11 @@ pragma solidity ^0.8.9;
 
 import "./IWETH.sol";
 import "./IERC20.sol";
+import "./IUniswapV2Pair.sol";
 import "./IUniswapV2Factory.sol";
 
 import "./SafeMath.sol";
 import "./TransferHelper.sol";
-
-interface IUniswapV2Pair {
-
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
-
-    function name() external pure returns (string memory);
-    function symbol() external pure returns (string memory);
-    function decimals() external pure returns (uint8);
-    function totalSupply() external view returns (uint);
-    function balanceOf(address owner) external view returns (uint);
-    function allowance(address owner, address spender) external view returns (uint);
-
-    function approve(address spender, uint value) external returns (bool);
-    function transfer(address to, uint value) external returns (bool);
-    function transferFrom(address from, address to, uint value) external returns (bool);
-
-    function DOMAIN_SEPARATOR() external view returns (bytes32);
-    function PERMIT_TYPEHASH() external pure returns (bytes32);
-    function nonces(address owner) external view returns (uint);
-
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external;
-
-    event Mint(address indexed sender, uint amount0, uint amount1);
-    event Burn(address indexed sender, uint amount0, uint amount1, address indexed to);
-    event Swap(
-        address indexed sender,
-        uint amount0In,
-        uint amount1In,
-        uint amount0Out,
-        uint amount1Out,
-        address indexed to
-    );
-    event Sync(uint112 reserve0, uint112 reserve1);
-
-    function MINIMUM_LIQUIDITY() external pure returns (uint);
-    // function factory() external view returns (address);
-    function token0() external view returns (address);
-    function token1() external view returns (address);
-    function getReserves() external view returns (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast);
-    function price0CumulativeLast() external view returns (uint);
-    function price1CumulativeLast() external view returns (uint);
-    function kLast() external view returns (uint);
-
-    function mint(address to) external returns (uint liquidity);
-    function burn(address to) external returns (uint amount0, uint amount1);
-    function swap(uint amount0Out, uint amount1Out, address to, bytes calldata data) external;
-    function skim(address to) external;
-    function sync() external;
-
-    function initialize(address, address) external;
-}
 
 interface IUniswapV2Router01 {
 
@@ -755,7 +704,7 @@ library UniswapV2Library {
             factory,
             keccak256(abi.encodePacked(token0, token1)),
             // hex'4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80'
-            hex'f04fd5e3f5b30af6dd14b39fcd43f69a796a3c943f942c59322b1c8639390f89'
+            hex'd2199b8aa808fb3ee3fbef2e95fb8d3ee52a16fa1181b863e4a9c7fcc9c7af2e'
         )))));
     }
 

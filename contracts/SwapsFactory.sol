@@ -2,9 +2,16 @@
 
 pragma solidity ^0.8.9;
 
-import "./Interfaces.sol";
+import "./IERC20.sol";
+import "./IUniswapV2Pair.sol";
+import "./IUniswapV2Factory.sol";
+
 import "./SwapHelper.sol";
 import "./SafeMath.sol";
+
+interface IUniswapV2Callee {
+    function uniswapV2Call(address sender, uint amount0, uint amount1, bytes calldata data) external;
+}
 
 contract UniswapV2ERC20 is IUniswapV2ERC20 {
 
