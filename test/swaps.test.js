@@ -99,6 +99,17 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 lookupAddress
             );
         });
+
+        it("should revert if pair already exists", async () => {
+
+            await catchRevert(
+                factory.createPair(
+                    token.address,
+                    weth.address
+                ),
+                "revert PAIR_EXISTS"
+            );
+        });
     });
 
     describe("Router Liquidity", () => {
