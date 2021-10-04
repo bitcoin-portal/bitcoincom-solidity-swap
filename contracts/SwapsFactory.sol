@@ -17,7 +17,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     string public constant name = 'Bitcoin.com Swaps';
     string public constant symbol = 'BCOM-S';
     uint8 public constant decimals = 18;
-    uint  public totalSupply;
+    uint256  public totalSupply;
 
     mapping(address => uint) public balanceOf;
     mapping(address => mapping(address => uint)) public allowance;
@@ -27,11 +27,20 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
     bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
     mapping(address => uint) public nonces;
 
-    event Approval(address indexed owner, address indexed spender, uint value);
-    event Transfer(address indexed from, address indexed to, uint value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
+
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 value
+    );
 
     constructor() {
-        uint chainId = block.chainid;
+        uint256 chainId = block.chainid;
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
@@ -43,61 +52,184 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         );
     }
 
-    function _mint(address to, uint value) internal {
-        totalSupply = totalSupply.add(value);
-        balanceOf[to] = balanceOf[to].add(value);
-        emit Transfer(address(0), to, value);
+    function _mint(
+        address _to,
+        uint256 _value
+    )
+        internal
+    {
+        totalSupply =
+        totalSupply + _value;
+
+        balanceOf[_to] =
+        balanceOf[_to] + _value;
+
+        emit Transfer(
+            address(0x0),
+            _to,
+            _value
+        );
     }
 
-    function _burn(address from, uint value) internal {
-        balanceOf[from] = balanceOf[from].sub(value);
-        totalSupply = totalSupply.sub(value);
-        emit Transfer(from, address(0), value);
+    function _burn(
+        address _from,
+        uint256 _value
+    )
+        internal
+    {
+        totalSupply =
+        totalSupply - _value;
+
+        balanceOf[_from] =
+        balanceOf[_from] - _value;
+
+        emit Transfer(
+            _from,
+            address(0x0),
+            _value
+        );
     }
 
-    function _approve(address owner, address spender, uint value) private {
-        allowance[owner][spender] = value;
-        emit Approval(owner, spender, value);
+    function _approve(
+        address _owner,
+        address _spender,
+        uint256 _value
+    )
+        private
+    {
+        allowance[_owner][_spender] = _value;
+
+        emit Approval(
+            _owner,
+            _spender,
+            _value
+        );
     }
 
-    function _transfer(address from, address to, uint value) private {
-        balanceOf[from] = balanceOf[from].sub(value);
-        balanceOf[to] = balanceOf[to].add(value);
-        emit Transfer(from, to, value);
+    function _transfer(
+        address _from,
+        address _to,
+        uint256 _value
+    )
+        private
+    {
+        balanceOf[_from] =
+        balanceOf[_from] - _value;
+
+        balanceOf[_to] =
+        balanceOf[_to] - _value;
+
+        emit Transfer(
+            _from,
+            _to,
+            _value
+        );
     }
 
-    function approve(address spender, uint value) external returns (bool) {
-        _approve(msg.sender, spender, value);
+    function approve(
+        address _spender,
+        uint256 _value
+    )
+        external
+        returns (bool)
+    {
+        _approve(
+            msg.sender,
+            _spender,
+            _value
+        );
+
         return true;
     }
 
-    function transfer(address to, uint value) external returns (bool) {
-        _transfer(msg.sender, to, value);
+    function transfer(
+        address _to,
+        uint256 _value
+    )
+        external
+        returns (bool)
+    {
+        _transfer(
+            msg.sender,
+            _to,
+            _value
+        );
+
         return true;
     }
 
-    function transferFrom(address from, address to, uint value) external returns (bool) {
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    )
+        external
+        returns (bool)
+    {
 
-        allowance[from][msg.sender] =
-        allowance[from][msg.sender].sub(value);
+        allowance[_from][msg.sender] =
+        allowance[_from][msg.sender] - _value;
 
-        _transfer(from, to, value);
+        _transfer(
+            _from,
+            _to,
+            _value
+        );
 
         return true;
     }
 
-    function permit(address owner, address spender, uint value, uint deadline, uint8 v, bytes32 r, bytes32 s) external {
-        require(deadline >= block.timestamp, 'EXPIRED');
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    )
+        external
+    {
+        require(
+            deadline >= block.timestamp,
+            'PERMIT_CALL_EXPIRED'
+        );
+
         bytes32 digest = keccak256(
             abi.encodePacked(
                 '\x19\x01',
                 DOMAIN_SEPARATOR,
-                keccak256(abi.encode(PERMIT_TYPEHASH, owner, spender, value, nonces[owner]++, deadline))
+                keccak256(
+                    abi.encode(
+                        PERMIT_TYPEHASH,
+                        owner,
+                        spender,
+                        value,
+                        nonces[owner]++,
+                        deadline
+                    )
+                )
             )
         );
-        address recoveredAddress = ecrecover(digest, v, r, s);
-        require(recoveredAddress != address(0) && recoveredAddress == owner, 'INVALID_SIGNATURE');
-        _approve(owner, spender, value);
+
+        address recoveredAddress = ecrecover(
+            digest,
+            v,
+            r,
+            s
+        );
+
+        require(
+            recoveredAddress != address(0) &&
+            recoveredAddress == owner,
+            'INVALID_SIGNATURE'
+        );
+
+        _approve(
+            owner,
+            spender,
+            value
+        );
     }
 }
 

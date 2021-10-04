@@ -704,7 +704,7 @@ library UniswapV2Library {
             factory,
             keccak256(abi.encodePacked(token0, token1)),
             // hex'4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80'
-            hex'd2199b8aa808fb3ee3fbef2e95fb8d3ee52a16fa1181b863e4a9c7fcc9c7af2e'
+            hex'79642107eb28406869c73859e7a1093ad874bf799ecbc1184954bc16bad3dd4f'
         )))));
     }
 
