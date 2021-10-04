@@ -435,19 +435,53 @@ contract UniswapV2Pair is IUniswapV2Pair, UniswapV2ERC20 {
         require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'K');
         }
 
-        _update(balance0, balance1, _reserve0, _reserve1);
-        emit Swap(msg.sender, amount0In, amount1In, amount0Out, amount1Out, to);
+        _update(
+            balance0,
+            balance1,
+            _reserve0,
+            _reserve1
+        );
+
+        emit Swap(
+            msg.sender,
+            amount0In,
+            amount1In,
+            amount0Out,
+            amount1Out,
+            to
+        );
     }
 
-    function skim(address to) external lock {
+    function skim()
+        external
+        lock
+    {
         address _token0 = token0; // gas savings
         address _token1 = token1; // gas savings
-        _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)).sub(reserve0));
-        _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)).sub(reserve1));
+
+        _safeTransfer(
+            _token0,
+            factory,
+            IERC20(_token0).balanceOf(address(this)) - reserve0
+        );
+
+        _safeTransfer(
+            _token1,
+            factory,
+            IERC20(_token1).balanceOf(address(this)) - reserve1
+        );
     }
 
-    function sync() external lock {
-        _update(IERC20(token0).balanceOf(address(this)), IERC20(token1).balanceOf(address(this)), reserve0, reserve1);
+    function sync()
+        external
+        lock
+    {
+        _update(
+            IERC20(token0).balanceOf(address(this)),
+            IERC20(token1).balanceOf(address(this)),
+            reserve0,
+            reserve1
+        );
     }
 }
 
@@ -467,42 +501,110 @@ contract SwapsFactory is IUniswapV2Factory {
         uint
     );
 
-    constructor(address _feeToSetter) {
+    constructor(
+        address _feeToSetter
+    ) {
         feeToSetter = _feeToSetter;
     }
 
-    function allPairsLength() external view returns (uint) {
+    function allPairsLength()
+        external
+        view
+        returns (uint256)
+    {
         return allPairs.length;
     }
 
-    function pairCodeHash() external pure returns (bytes32) {
-        return keccak256(type(UniswapV2Pair).creationCode);
+    function pairCodeHash()
+        external
+        pure
+        returns (bytes32)
+    {
+        return keccak256(
+            type(UniswapV2Pair).creationCode
+        );
     }
 
-    function createPair(address tokenA, address tokenB) external returns (address pair) {
-        require(tokenA != tokenB, 'IDENTICAL_ADDRESSES');
-        (address token0, address token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
-        require(token0 != address(0), 'ZERO_ADDRESS');
-        require(getPair[token0][token1] == address(0), 'PAIR_EXISTS'); // single check is sufficient
+    function createPair(
+        address _tokenA,
+        address _tokenB
+    )
+        external
+        returns (address pair)
+    {
+        require(
+            _tokenA != _tokenB,
+            'IDENTICAL_TOKENS'
+        );
+
+        (address token0, address token1) = _tokenA < _tokenB
+            ? (_tokenA, _tokenB)
+            : (_tokenB, _tokenA);
+
+        require(
+            token0 != address(0),
+            'INVALID_TOKEN0_ADDRESS'
+        );
+
+        require(
+            getPair[token0][token1] == address(0),
+            'PAIR_ALREADY_EXISTS'
+        );
+
         bytes memory bytecode = type(UniswapV2Pair).creationCode;
-        bytes32 salt = keccak256(abi.encodePacked(token0, token1));
+
+        bytes32 salt = keccak256(
+            abi.encodePacked(
+                token0,
+                token1
+            )
+        );
+
         assembly {
             pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
         }
-        IUniswapV2Pair(pair).initialize(token0, token1);
+
+        IUniswapV2Pair(pair).initialize(
+            token0,
+            token1
+        );
+
         getPair[token0][token1] = pair;
-        getPair[token1][token0] = pair; // populate mapping in the reverse direction
+        getPair[token1][token0] = pair;
+
         allPairs.push(pair);
-        emit PairCreated(token0, token1, pair, allPairs.length);
+
+        emit PairCreated(
+            token0,
+            token1,
+            pair,
+            allPairs.length
+        );
     }
 
-    function setFeeTo(address _feeTo) external {
-        require(msg.sender == feeToSetter, 'FORBIDDEN');
+    function setFeeTo(
+        address _feeTo
+    )
+        external
+    {
+        require(
+            msg.sender == feeToSetter,
+            'FORBIDDEN'
+        );
+
         feeTo = _feeTo;
     }
 
-    function setFeeToSetter(address _feeToSetter) external {
-        require(msg.sender == feeToSetter, 'FORBIDDEN');
+    function setFeeToSetter(
+        address _feeToSetter
+    )
+        external
+    {
+        require(
+            msg.sender == feeToSetter,
+            'FORBIDDEN'
+        );
+
         feeToSetter = _feeToSetter;
     }
 }

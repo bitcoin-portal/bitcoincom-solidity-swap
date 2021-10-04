@@ -4,168 +4,211 @@ pragma solidity ^0.8.9;
 
 contract Token {
 
+    string private _name = "Token";
+    string private _symbol = "TKN";
+    uint8 private _decimals = 18;
+
+    address public master;
+
     mapping (address => uint256) private _balances;
     mapping (address => mapping (address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
 
-    string private _name;
-    string private _symbol;
-    uint8 private _decimals;
+    event Transfer(
+        address indexed from,
+        address indexed to,
+        uint256 value
+    );
 
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 
-    constructor () {
-        _name = "Token";
-        _symbol = "TKN";
-        _decimals = 18;
-
-        _totalSupply = 90000000000000000000000000000;
+    constructor() {
+        _totalSupply = 9000000000000000000000000000000000;
         _balances[msg.sender] = _totalSupply;
     }
 
-    /**
-     * @dev Returns the name of the token.
-     */
-    function name() public view returns (string memory) {
+    function name()
+        external
+        view
+        returns (string memory)
+    {
         return _name;
     }
 
-    /**
-     * @dev Returns the symbol of the token, usually a shorter version of the
-     * name.
-     */
-    function symbol() public view returns (string memory) {
+    function symbol()
+        external
+        view
+        returns (string memory)
+    {
         return _symbol;
     }
 
-    function decimals() public view returns (uint8) {
+    function decimals()
+        external
+        view
+        returns (uint8)
+    {
         return _decimals;
     }
 
-    function totalSupply() public view returns (uint256) {
+    function totalSupply()
+        external
+        view
+        returns (uint256)
+    {
         return _totalSupply;
     }
 
-    function balanceOf(address account) public view returns (uint256) {
-        return _balances[account];
+    function balanceOf(
+        address _account
+    )
+        external
+        view
+        returns (uint256)
+    {
+        return _balances[_account];
     }
 
     function transfer(
-        address recipient,
-        uint256 amount
-    ) public returns (bool) {
-        _transfer(_msgSender(), recipient, amount);
-        return true;
-    }
-
-    function allowance(
-        address owner,
-        address spender
-    ) public view returns (uint256) {
-        return _allowances[owner][spender];
-    }
-
-    function approve(
-        address spender,
-        uint256 amount
-    ) public returns (bool) {
-        _approve(_msgSender(), spender, amount);
-        return true;
-    }
-
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) public returns (bool) {
-        _approve(
-            sender,
+        address _recipient,
+        uint256 _amount
+    )
+        external
+        returns (bool)
+    {
+        _transfer(
             _msgSender(),
-            _allowances[sender][_msgSender()] - amount
+            _recipient,
+            _amount
         );
-        _transfer(sender, recipient, amount);
-        return true;
-    }
 
-    function increaseAllowance(
-        address spender,
-        uint256 addedValue
-    ) public virtual returns (bool) {
-        _approve(
-            _msgSender(),
-            spender,
-            _allowances[_msgSender()][spender] + addedValue
-        );
-        return true;
-    }
-
-    function decreaseAllowance(
-        address spender,
-        uint256 subtractedValue
-    ) public virtual returns (bool) {
-        _approve(
-            _msgSender(), spender, _allowances[_msgSender()][spender] - subtractedValue
-        );
         return true;
     }
 
     function _transfer(
-        address sender,
-        address recipient,
-        uint256 amount
+        address _sender,
+        address _recipient,
+        uint256 _amount
     )
         internal
-        virtual
     {
-        require(
-            sender != address(0),
-            "ERC20: transfer from the zero address"
+        _balances[_sender] =
+        _balances[_sender] - _amount;
+
+        _balances[_recipient] =
+        _balances[_recipient] + _amount;
+
+        emit Transfer(
+            _sender,
+            _recipient,
+            _amount
+        );
+    }
+
+    function transferFrom(
+        address _sender,
+        address _recipient,
+        uint256 _amount
+    )
+        external
+        returns (bool)
+    {
+        _approve(
+            _sender,
+            _msgSender(),
+            _allowances[_sender][_msgSender()] - _amount
         );
 
-        require(
-            recipient != address(0),
-            "ERC20: transfer to the zero address"
+        _transfer(
+            _sender,
+            _recipient,
+            _amount
         );
 
-        _balances[sender] =
-        _balances[sender] - amount;
+        return true;
+    }
 
-        _balances[recipient] =
-        _balances[recipient] + amount;
+    function allowance(
+        address _owner,
+        address _spender
+    )
+        external
+        view
+        returns (uint256)
+    {
+        return _allowances[_owner][_spender];
+    }
 
-        emit Transfer(sender, recipient, amount);
+    function approve(
+        address _spender,
+        uint256 _amount
+    )
+        external
+        returns (bool)
+    {
+        _approve(
+            _msgSender(),
+            _spender,
+            _amount
+        );
+
+        return true;
     }
 
     function _approve(
-        address owner,
-        address spender,
-        uint256 amount
+        address _owner,
+        address _spender,
+        uint256 _amount
     )
         internal
-        virtual
     {
-        require(
-            owner != address(0x0),
-            "ERC20: approve from the zero address"
-        );
+        _allowances[_owner][_spender] = _amount;
 
-        require(
-            spender != address(0x0),
-            "ERC20: approve to the zero address"
+        emit Approval(
+            _owner,
+            _spender,
+            _amount
         );
-
-        _allowances[owner][spender] = amount;
-        emit Approval(owner, spender, amount);
     }
 
-    function _msgSender() internal view virtual returns (address payable) {
-        return payable(msg.sender);
+    function burn(
+        uint256 _amount
+    )
+        external
+    {
+        _balances[_msgSender()] =
+        _balances[_msgSender()] - _amount;
+
+        _totalSupply =
+        _totalSupply - _amount;
+
+        emit Transfer(
+            _msgSender(),
+            address(0x0),
+            _amount
+        );
     }
 
-    function _msgData() internal view virtual returns (bytes memory) {
-        this;
-        return msg.data;
+    function _msgSender()
+        internal
+        view
+        returns(address sender)
+    {
+        if (msg.sender == address(this)) {
+            bytes memory array = msg.data;
+            uint256 index = msg.data.length;
+            assembly {
+                // Load the 32 bytes word from memory with the address on the lower 20 bytes, and mask those.
+                sender := and(mload(add(array, index)), 0xffffffffffffffffffffffffffffffffffffffff)
+            }
+        } else {
+            sender = msg.sender;
+        }
+        return sender;
     }
 }

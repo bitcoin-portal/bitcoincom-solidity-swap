@@ -9,6 +9,9 @@ const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 require("./utils");
 
 const BN = web3.utils.BN;
+const APPROVE_VALUE = web3.utils.toWei("1000000");
+
+const ONE_ETH = web3.utils.toWei("1");
 
 const FOUR_ETH = web3.utils.toWei("4");
 const FIVE_ETH = web3.utils.toWei("5");
@@ -30,7 +33,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     let token;
     let factory;
     let router;
-    let launchTime;
+    // let launchTime;
 
     // beforeEach(async () => {
     before(async () => {
@@ -56,7 +59,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
         it("should have correct pairCodeHash value", async () => {
             const pairCodeHash = await factory.pairCodeHash();
             // const expectedValue = '0x4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80';
-            const expectedValue = '0x79642107eb28406869c73859e7a1093ad874bf799ecbc1184954bc16bad3dd4f';
+            const expectedValue = '0x995c0f5bf9cbe8e7384fe27bd0e660a6e9371be854f1999f5ca30932e61b1dab';
             assert.equal(
                 pairCodeHash,
                 expectedValue
@@ -88,7 +91,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 factory
             );
 
-            const lookupAddress = await router.pairLookup(
+            const lookupAddress = await router.pairFor(
                 factory.address,
                 token.address,
                 weth.address
@@ -118,12 +121,9 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             const depositAmount = FIVE_ETH;
 
-            pairCodeHash = await factory.pairCodeHash();
-            supply = await token.balanceOf(owner);
-
             await token.approve(
                 router.address,
-                STATIC_SUPPLY,
+                APPROVE_VALUE,
                 {from: owner}
             );
 
@@ -137,7 +137,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 {from: owner, value: depositAmount}
             );
 
-            const pairAddress = await router.pairLookup(
+            const pairAddress = await router.pairFor(
                 factory.address,
                 token.address,
                 weth.address
@@ -171,17 +171,18 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     });
 
     describe("Router Swap", () => {
+
         it("should be able to perform a swap (ETH > ERC20)", async () => {
 
-            const pairAddress = await router.pairLookup(
+            const swapAmount = FOUR_ETH;
+
+            const pairAddress = await router.pairFor(
                 factory.address,
                 token.address,
                 weth.address
             );
 
             wethBalanceBefore = await weth.balanceOf(pairAddress);
-
-            const swapAmount = FOUR_ETH;
 
             const path = [
                 weth.address,
@@ -192,11 +193,14 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 0,
                 path,
                 owner,
-                170000000000,
-                {from: owner, value: swapAmount}
+                1700000000000,
+                {
+                    from: owner,
+                    gasLimit: 10000000000,
+                    value: swapAmount
+                }
             );
 
-            pair = await IUniswapV2Pair.at(pairAddress);
             wethBalanceAfter = await weth.balanceOf(pairAddress);
 
             assert.equal(
