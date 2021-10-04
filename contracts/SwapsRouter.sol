@@ -6,145 +6,10 @@ import "./IWETH.sol";
 import "./IERC20.sol";
 import "./IUniswapV2Pair.sol";
 import "./IUniswapV2Factory.sol";
+import "./IUniswapV2Router.sol";
 
 import "./SafeMath.sol";
 import "./TransferHelper.sol";
-
-interface IUniswapV2Router01 {
-
-    // function factory() external pure returns (address);
-    // function WETH() external pure returns (address);
-
-    function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB, uint liquidity);
-    function addLiquidityETH(
-        address token,
-        uint amountTokenDesired,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external payable returns (uint amountToken, uint amountETH, uint liquidity);
-    function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint liquidity,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountA, uint amountB);
-    function removeLiquidityETH(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountToken, uint amountETH);
-    function removeLiquidityWithPermit(
-        address tokenA,
-        address tokenB,
-        uint liquidity,
-        uint amountAMin,
-        uint amountBMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountA, uint amountB);
-    function removeLiquidityETHWithPermit(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountToken, uint amountETH);
-    function swapExactTokensForTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
-    function swapTokensForExactTokens(
-        uint amountOut,
-        uint amountInMax,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external returns (uint[] memory amounts);
-    function swapExactETHForTokens(uint amountOutMin, address[] calldata path, address to, uint deadline)
-        external
-        payable
-        returns (uint[] memory amounts);
-    function swapTokensForExactETH(uint amountOut, uint amountInMax, address[] calldata path, address to, uint deadline)
-        external
-        returns (uint[] memory amounts);
-    function swapExactTokensForETH(uint amountIn, uint amountOutMin, address[] calldata path, address to, uint deadline)
-        external
-        returns (uint[] memory amounts);
-    function swapETHForExactTokens(uint amountOut, address[] calldata path, address to, uint deadline)
-        external
-        payable
-        returns (uint[] memory amounts);
-
-    function quote(uint amountA, uint reserveA, uint reserveB) external pure returns (uint amountB);
-    function getAmountOut(uint amountIn, uint reserveIn, uint reserveOut) external pure returns (uint amountOut);
-    function getAmountIn(uint amountOut, uint reserveIn, uint reserveOut) external pure returns (uint amountIn);
-    function getAmountsOut(uint amountIn, address[] calldata path) external view returns (uint[] memory amounts);
-    function getAmountsIn(uint amountOut, address[] calldata path) external view returns (uint[] memory amounts);
-}
-
-interface IUniswapV2Router02 is IUniswapV2Router01 {
-    function removeLiquidityETHSupportingFeeOnTransferTokens(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline
-    ) external returns (uint amountETH);
-    function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
-        address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
-        address to,
-        uint deadline,
-        bool approveMax, uint8 v, bytes32 r, bytes32 s
-    ) external returns (uint amountETH);
-
-    function swapExactTokensForTokensSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-    function swapExactETHForTokensSupportingFeeOnTransferTokens(
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external payable;
-    function swapExactTokensForETHSupportingFeeOnTransferTokens(
-        uint amountIn,
-        uint amountOutMin,
-        address[] calldata path,
-        address to,
-        uint deadline
-    ) external;
-}
 
 contract SwapsRouter is IUniswapV2Router02 {
 
@@ -153,7 +18,9 @@ contract SwapsRouter is IUniswapV2Router02 {
     address public immutable factory;
     address public immutable WETH;
 
-    modifier ensure(uint256 _deadline) {
+    modifier ensure(
+        uint256 _deadline
+    ) {
         require(
             _deadline >= block.timestamp,
             'DEADLINE_EXPIRED'
@@ -176,80 +43,122 @@ contract SwapsRouter is IUniswapV2Router02 {
         );
     }
 
-    // **** ADD LIQUIDITY ****
     function _addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin
+        address _tokenA,
+        address _tokenB,
+        uint256 _amountADesired,
+        uint256 _amountBDesired,
+        uint256 _amountAMin,
+        uint256 _amountBMin
     )
         internal
         returns (uint256, uint256)
     {
-        if (IUniswapV2Factory(factory).getPair(tokenA, tokenB) == address(0)) {
-            IUniswapV2Factory(factory).createPair(tokenA, tokenB);
+        if (IUniswapV2Factory(factory).getPair(_tokenA, _tokenB) == address(0)) {
+            IUniswapV2Factory(factory).createPair(_tokenA, _tokenB);
         }
 
         (uint256 reserveA, uint256 reserveB) = UniswapV2Library.getReserves(
             factory,
-            tokenA,
-            tokenB
+            _tokenA,
+            _tokenB
         );
 
         if (reserveA == 0 && reserveB == 0) {
-            return (amountADesired, amountBDesired);
+            return (
+                _amountADesired,
+                _amountBDesired
+            );
         }
 
         uint256 amountBOptimal = UniswapV2Library.quote(
-            amountADesired,
+            _amountADesired,
             reserveA,
             reserveB
         );
 
-        if (amountBOptimal <= amountBDesired) {
+        if (amountBOptimal <= _amountBDesired) {
 
             require(
-                amountBOptimal >= amountBMin,
+                amountBOptimal >= _amountBMin,
                 'INSUFFICIENT_B_AMOUNT'
             );
 
-            return (amountADesired, amountBOptimal);
+            return (
+                _amountADesired,
+                amountBOptimal
+            );
         }
 
         uint256 amountAOptimal = UniswapV2Library.quote(
-            amountBDesired,
+            _amountBDesired,
             reserveB,
             reserveA
         );
 
-        assert(amountAOptimal <= amountADesired);
+        assert(amountAOptimal <= _amountADesired);
 
         require(
-            amountAOptimal >= amountAMin,
+            amountAOptimal >= _amountAMin,
             'INSUFFICIENT_A_AMOUNT'
         );
 
-        return (amountAOptimal, amountBDesired);
+        return (
+            amountAOptimal,
+            _amountBDesired
+        );
     }
 
     function addLiquidity(
         address tokenA,
         address tokenB,
-        uint amountADesired,
-        uint amountBDesired,
-        uint amountAMin,
-        uint amountBMin,
+        uint256 amountADesired,
+        uint256 amountBDesired,
+        uint256 amountAMin,
+        uint256 amountBMin,
         address to,
-        uint deadline
-    ) external virtual override ensure(deadline) returns (uint amountA, uint amountB, uint liquidity) {
-        (amountA, amountB) = _addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin);
-        address pair = UniswapV2Library.pairFor(factory, tokenA, tokenB);
-        safeTransferFrom(tokenA, msg.sender, pair, amountA);
-        safeTransferFrom(tokenB, msg.sender, pair, amountB);
+        uint256 deadline
+    )
+        external
+        ensure(deadline)
+        returns (
+            uint256 amountA,
+            uint256 amountB,
+            uint256 liquidity
+        )
+    {
+        (amountA, amountB) = _addLiquidity(
+            tokenA,
+            tokenB,
+            amountADesired,
+            amountBDesired,
+            amountAMin,
+            amountBMin
+        );
+
+        address pair = UniswapV2Library.pairFor(
+            factory,
+            tokenA,
+            tokenB
+        );
+
+        safeTransferFrom(
+            tokenA,
+            msg.sender,
+            pair,
+            amountA
+        );
+
+        safeTransferFrom(
+            tokenB,
+            msg.sender,
+            pair,
+            amountB
+        );
+
         liquidity = IUniswapV2Pair(pair).mint(to);
     }
+
     function addLiquidityETH(
         address token,
         uint256 amountTokenDesired,
