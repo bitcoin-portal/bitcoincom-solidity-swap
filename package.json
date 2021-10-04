@@ -9,14 +9,6 @@
 	"description": "Bitcoin Swaps",
 	"author": "vitally.eth",
 	"private": true,
-	"files": [
-		"/contracts/**/*.sol",
-		"/build/contracts/*.json",
-		"!/contracts/mocks/**/*"
-	],
-	"bin": {
-		"openzeppelin-contracts-migrate-imports": "scripts/migrate-imports.js"
-	},
 	"scripts": {
 		"chain": "ganache-cli --defaultBalanceEther 10000000 -i 5777 -p 9545 -l 12500000 -m \"urban prevent meadow draft involve security curtain robot brick question try scatter\"",
 		"compile": "truffle compile",
