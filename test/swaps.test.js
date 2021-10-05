@@ -176,10 +176,10 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             pair = await IUniswapV2Pair.at(pairAddress);
             ownersBalance = await pair.balanceOf(owner);
 
-            /*assert.isAbove(
+            assert.isAbove(
                 parseInt(ownersBalance),
                 0
-            );*/
+            );
 
             await pair.approve(
                 router.address,
@@ -187,15 +187,15 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 {from: owner}
             );
 
-            /*allowance = pair.allowance(
+            const allowance = await pair.allowance(
                 owner,
-                router
+                router.address
             );
 
             assert.equal(
                 allowance,
                 APPROVE_VALUE
-            );*/
+            );
 
             await router.removeLiquidityETH(
                 token.address,
@@ -208,11 +208,28 @@ contract("Swaps", ([owner, alice, bob, random]) => {
         });
     });
 
-    describe.skip("Router Swap", () => {
+    describe("Router Swap", () => {
 
-        it.skip("should be able to perform a swap (ETH > ERC20)", async () => {
+        it("should be able to perform a swap (ETH > ERC20)", async () => {
 
+            const depositAmount = FIVE_ETH;
             const swapAmount = FOUR_ETH;
+
+            await token.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await router.addLiquidityETH(
+                token.address,
+                STATIC_SUPPLY,
+                0,
+                0,
+                owner,
+                170000000000,
+                {from: owner, value: depositAmount}
+            );
 
             const pairAddress = await router.pairFor(
                 factory.address,
