@@ -117,7 +117,7 @@ contract UniswapV2ERC20 is IUniswapV2ERC20 {
         balanceOf[_from] - _value;
 
         balanceOf[_to] =
-        balanceOf[_to] - _value;
+        balanceOf[_to] + _value;
 
         emit Transfer(
             _from,
