@@ -90,48 +90,48 @@ contract WrappedEther {
     }
 
     function transfer(
-        address dst,
-        uint wad
+        address _dst,
+        uint256 _wad
     )
-        public
+        external
         returns (bool)
     {
         balanceOf[msg.sender] =
-        balanceOf[msg.sender] - wad;
+        balanceOf[msg.sender] - _wad;
 
         balanceOf[dst] =
-        balanceOf[dst] + wad;
+        balanceOf[dst] + _wad;
 
         emit Transfer(
             msg.sender,
-            dst,
-            wad
+            _dst,
+            _wad
         );
 
         return true;
     }
 
     function transferFrom(
-        address src,
-        address dst,
-        uint256 wad
+        address _src,
+        address _dst,
+        uint256 _wad
     )
-        public
+        external
         returns (bool)
     {
         allowance[src][msg.sender] =
-        allowance[src][msg.sender] - wad;
+        allowance[src][msg.sender] - _wad;
 
         balanceOf[src] =
-        balanceOf[src] - wad;
+        balanceOf[src] - _wad;
 
         balanceOf[dst] =
-        balanceOf[dst] + wad;
+        balanceOf[dst] + _wad;
 
         emit Transfer(
-            src,
-            dst,
-            wad
+            _src,
+            _dst,
+            _wad
         );
 
         return true;
