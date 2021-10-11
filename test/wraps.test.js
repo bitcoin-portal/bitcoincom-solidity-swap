@@ -23,6 +23,65 @@ contract("Weth", ([owner, alice, bob, random]) => {
         weth = await Weth.new();
     });
 
+    describe("Weth Getter functionality", () => {
+
+        it("should have correct token name", async () => {
+            const name = await weth.name();
+            assert.equal(
+                name,
+                "Wrapped Ether"
+            );
+        });
+
+        it("should have correct weth symbol", async () => {
+            const symbol = await weth.symbol();
+            assert.equal(
+                symbol,
+                "WETH"
+            );
+        });
+
+        it("should have correct decimals", async () => {
+            const decimals = await weth.decimals();
+            assert.equal(
+                decimals,
+                18
+            );
+        });
+
+        it("should have correct totalSupply", async () => {
+
+            await weth.send(FOUR_ETH, {
+                from: alice
+            });
+
+            await weth.send(FIVE_ETH, {
+                from: bob
+            });
+
+            totalSupply = await weth.totalSupply();
+
+            assert.equal(
+                totalSupply,
+                NINE_ETH
+            );
+        });
+
+        it("should return the correct balance for the given account", async () => {
+            const amount = FOUR_ETH;
+            await weth.deposit({
+                value: amount,
+                from: owner
+            });
+
+            const balance = await weth.balanceOf(owner);
+            assert.equal(
+                balance,
+                amount
+            );
+        });
+    });
+
     describe("Deposit functionality", () => {
 
         it("should credit correct amount when deposited", async () => {
@@ -34,7 +93,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
                 from: alice
             });
 
-            balance = await weth.balanceOf(alice);
+            const balance = await weth.balanceOf(alice);
 
             assert.equal(
                 balance,
@@ -75,7 +134,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
                 from: bob
             });
 
-            balance = await weth.balanceOf(bob);
+            const balance = await weth.balanceOf(bob);
 
             assert.equal(
                 balance,
@@ -85,44 +144,185 @@ contract("Weth", ([owner, alice, bob, random]) => {
     });
 
     describe("Withdraw functionality", () => {
-
-        it("should give back correct amount", async () => {
-        });
-
-        it("should emit withdraw event", async () => {
-        });
-    });
-
-    describe("Supply functionality", () => {
-
-        it("should have correct totalSupply", async () => {
-
-            await weth.send(FOUR_ETH, {
+        beforeEach(async () => {
+            await weth.deposit({
+                value: NINE_ETH,
                 from: alice
             });
+        });
 
-            await weth.send(FIVE_ETH, {
-                from: bob
-            });
+        it("should deduct the correct amount", async () => {
+            const balanceBefore = await weth.balanceOf(alice);
+            const withdrawalAmount = FOUR_ETH;
 
-            totalSupply = await weth.totalSupply();
+            await weth.withdraw(
+                FOUR_ETH,
+                {
+                    from: alice
+                }
+            );
+
+            const balanceAfter = await weth.balanceOf(alice);
 
             assert.equal(
-                totalSupply,
-                NINE_ETH
+                balanceAfter,
+                balanceBefore - withdrawalAmount
+            );
+        });
+
+        it("should emit the correct withdrawal event", async () => {
+            const amount = FOUR_ETH;
+
+            await weth.withdraw(
+                amount,
+                {
+                    from: alice
+                }
+            );
+
+            const { src, wad } = await getLastEvent(
+                "Withdrawal",
+                weth
+            );
+
+            assert.equal(
+                alice,
+                src
+            );
+
+            assert.equal(
+                amount,
+                wad
             );
         });
     });
 
-    describe.skip("Transfer functionality", () => {
+    describe.only("Transfer functionality", () => {
 
-        it("should allow to transfer WETH token between accounts", async () => {
+        beforeEach(async () => {
+            await weth.deposit({
+                value: NINE_ETH,
+                from: alice
+            });
         });
 
-        it("should be able to use approve/allowance", async () => {
+        it("should transfer correct amount of WETH from walletA to walletB", async () => {
+            const transferValue = FOUR_ETH;
+            const balanceBefore = await weth.balanceOf(bob);
+
+            await weth.transfer(
+                bob,
+                transferValue,
+                {
+                    from: alice
+                }
+            );
+
+            const balanceAfter = await weth.balanceOf(bob);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) + parseInt(transferValue)
+            );
         });
 
-        it("should be able to use transferFrom", async () => {
+        it("should reduce the sending wallet's balance after transfer", async () => {
+            const transferValue = FOUR_ETH;
+            const balanceBefore = await weth.balanceOf(alice);
+
+            await weth.transfer(
+                bob,
+                transferValue,
+                {
+                    from: alice
+                }
+            );
+
+            const balanceAfter = await weth.balanceOf(alice);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) - parseInt(transferValue)
+            );
+        });
+
+        it("should revert if not enough balance in the wallet", async () => {
+            const balanceBefore = await weth.balanceOf(alice);
+
+            await catchRevert(
+                weth.transfer(
+                    bob,
+                    parseInt(balanceBefore) + FOUR_ETH,
+                    {
+                        from: alice
+                    }
+                )
+            );
+        });
+
+        it("should emit correct Transfer event", async () => {
+            const transferValue = FOUR_ETH;
+            const expectedRecepient = bob;
+
+            await weth.transfer(
+                expectedRecepient,
+                transferValue,
+                {
+                    from: alice
+                }
+            );
+
+            const { src, dst, wad } = await getLastEvent(
+                "Transfer",
+                weth
+            );
+
+            assert.equal(
+                src,
+                alice
+            );
+
+            assert.equal(
+                dst,
+                expectedRecepient
+            );
+
+            assert.equal(
+                wad,
+                transferValue
+            );
+        });
+
+        it("should approve the transfer with an emitted Approval event", async () => {
+            const transferValue = FOUR_ETH;
+
+            await weth.approve(
+                bob,
+                transferValue,
+                {
+                    from: alice
+                }
+            );
+
+            const { src, guy, wad } = await getLastEvent(
+                "Approval",
+                weth
+            );
+
+            assert.equal(
+                src,
+                alice
+            );
+
+            assert.equal(
+                guy,
+                bob
+            );
+
+            assert.equal(
+                wad,
+                transferValue
+            );
         });
     });
 });
