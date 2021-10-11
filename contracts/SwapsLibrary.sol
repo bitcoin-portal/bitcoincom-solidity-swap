@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.9;
 
-import "./IUniswapV2Pair.sol";
+import "./ISwapsPair.sol";
 
 library SwapsLibrary {
 
@@ -60,7 +60,7 @@ library SwapsLibrary {
                                 )
                             ),
                             // hex'4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80'
-                            hex'460da99920eb880188503b89ba4d72586b8206165f1ab493fb53789c9a405da0'
+                            hex'62919180ffb998a4ee19d98ac97aa3615d6747343dc8da61670b8e6d70e288a4'
                         )
                     )
                 )
@@ -86,7 +86,7 @@ library SwapsLibrary {
             tokenB
         );
 
-        (uint reserve0, uint reserve1,) = IUniswapV2Pair(
+        (uint reserve0, uint reserve1,) = ISwapsPair(
             pairFor(
                 factory,
                 tokenA,
@@ -101,6 +101,7 @@ library SwapsLibrary {
 
     // given some amount of an asset and pair reserves,
     // returns an equivalent amount of the other asset
+
     function quote(
         uint amountA,
         uint reserveA,
@@ -125,7 +126,9 @@ library SwapsLibrary {
             / reserveA;
     }
 
-    // given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
+    // given an input amount of an asset and pair reserves,
+    // returns the maximum output amount of the other asset
+
     function getAmountOut(
         uint256 amountIn,
         uint256 reserveIn,
@@ -154,6 +157,7 @@ library SwapsLibrary {
 
     // given an output amount of an asset and pair reserves,
     // returns a required input amount of the other asset
+
     function getAmountIn(
         uint256 amountOut,
         uint256 reserveIn,
@@ -190,12 +194,27 @@ library SwapsLibrary {
         view
         returns (uint[] memory amounts)
     {
-        require(path.length >= 2, 'INVALID_PATH');
+        require(
+            path.length >= 2,
+            'INVALID_PATH'
+        );
+
         amounts = new uint[](path.length);
         amounts[0] = amountIn;
-        for (uint i; i < path.length - 1; i++) {
-            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i], path[i + 1]);
-            amounts[i + 1] = getAmountOut(amounts[i], reserveIn, reserveOut);
+
+        for (uint256 i; i < path.length - 1; i++) {
+
+            (uint reserveIn, uint reserveOut) = getReserves(
+                factory,
+                path[i],
+                path[i + 1]
+            );
+
+            amounts[i + 1] = getAmountOut(
+                amounts[i],
+                reserveIn,
+                reserveOut
+            );
         }
     }
 
@@ -216,12 +235,25 @@ library SwapsLibrary {
             'INVALID_PATH'
         );
 
-        amounts = new uint[](path.length);
+        amounts = new uint[](
+            path.length
+        );
 
         amounts[amounts.length - 1] = amountOut;
+
         for (uint i = path.length - 1; i > 0; i--) {
-            (uint reserveIn, uint reserveOut) = getReserves(factory, path[i - 1], path[i]);
-            amounts[i - 1] = getAmountIn(amounts[i], reserveIn, reserveOut);
+
+            (uint reserveIn, uint reserveOut) = getReserves(
+                factory,
+                path[i - 1],
+                path[i]
+            );
+
+            amounts[i - 1] = getAmountIn(
+                amounts[i],
+                reserveIn,
+                reserveOut
+            );
         }
     }
 }

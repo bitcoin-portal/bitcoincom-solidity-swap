@@ -4,14 +4,14 @@ pragma solidity ^0.8.9;
 
 import "./IWETH.sol";
 import "./IERC20.sol";
-import "./IUniswapV2Factory.sol";
-import "./IUniswapV2Router.sol";
+import "./ISwapsFactory.sol";
+import "./ISwapsRouter.sol";
 
 import "./SafeMath.sol";
 import "./SwapsLibrary.sol";
 import "./TransferHelper.sol";
 
-contract SwapsRouter is IUniswapV2Router02 {
+contract SwapsRouter is ISwapsRouter {
 
     using SafeMath for uint;
 
@@ -54,8 +54,8 @@ contract SwapsRouter is IUniswapV2Router02 {
         internal
         returns (uint256, uint256)
     {
-        if (IUniswapV2Factory(factory).getPair(_tokenA, _tokenB) == address(0x0)) {
-            IUniswapV2Factory(factory).createPair(_tokenA, _tokenB);
+        if (ISwapsFactory(factory).getPair(_tokenA, _tokenB) == address(0x0)) {
+            ISwapsFactory(factory).createPair(_tokenA, _tokenB);
         }
 
         (uint256 reserveA, uint256 reserveB) = SwapsLibrary.getReserves(
@@ -158,7 +158,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             amountB
         );
 
-        liquidity = IUniswapV2Pair(pair).mint(to);
+        liquidity = ISwapsPair(pair).mint(to);
     }
 
     function addLiquidityETH(
@@ -211,7 +211,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             )
         );
 
-        liquidity = IUniswapV2Pair(pair).mint(to);
+        liquidity = ISwapsPair(pair).mint(to);
 
         if (msg.value > amountETH) {
             unchecked {
@@ -245,13 +245,13 @@ contract SwapsRouter is IUniswapV2Router02 {
             tokenB
         );
 
-        IUniswapV2Pair(pair).transferFrom(
+        ISwapsPair(pair).transferFrom(
             msg.sender,
             pair,
             liquidity
         );
 
-        (uint amount0, uint amount1) = IUniswapV2Pair(pair).burn(to);
+        (uint amount0, uint amount1) = ISwapsPair(pair).burn(to);
         (address token0,) = SwapsLibrary.sortTokens(tokenA, tokenB);
 
         (amountA, amountB) = tokenA == token0
@@ -332,7 +332,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             ? U256_MAX
             : liquidity;
 
-        IUniswapV2Pair(pair).permit(
+        ISwapsPair(pair).permit(
             msg.sender,
             address(this),
             value,
@@ -383,7 +383,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             ? U256_MAX
             : liquidity;
 
-        IUniswapV2Pair(pair).permit(
+        ISwapsPair(pair).permit(
             msg.sender,
             address(this),
             value,
@@ -467,7 +467,7 @@ contract SwapsRouter is IUniswapV2Router02 {
             ? U256_MAX
             : liquidity;
 
-        IUniswapV2Pair(pair).permit(
+        ISwapsPair(pair).permit(
             msg.sender,
             address(this),
             value,
@@ -512,7 +512,7 @@ contract SwapsRouter is IUniswapV2Router02 {
                 ? pairFor(factory, output, _path[i + 2])
                 : _to;
 
-            IUniswapV2Pair(
+            ISwapsPair(
                 pairFor(
                     factory,
                     input,
@@ -828,7 +828,7 @@ contract SwapsRouter is IUniswapV2Router02 {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0,) = SwapsLibrary.sortTokens(input, output);
-            IUniswapV2Pair pair = IUniswapV2Pair(pairFor(factory, input, output));
+            ISwapsPair pair = ISwapsPair(pairFor(factory, input, output));
             uint amountInput;
             uint amountOutput;
             { // scope to avoid stack too deep errors

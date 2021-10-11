@@ -2,7 +2,7 @@ const Token = artifacts.require("Token");
 const Weth = artifacts.require("WrappedEther");
 const Router = artifacts.require("SwapsRouter");
 const Factory = artifacts.require("SwapsFactory");
-const IUniswapV2Pair = artifacts.require("IUniswapV2Pair");
+const ISwapsPair = artifacts.require("ISwapsPair");
 
 const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 
@@ -59,7 +59,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
         it("should have correct pairCodeHash value", async () => {
             const pairCodeHash = await factory.pairCodeHash();
             // const expectedValue = '0x4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80';
-            const expectedValue = '0x460da99920eb880188503b89ba4d72586b8206165f1ab493fb53789c9a405da0';
+            const expectedValue = '0x62919180ffb998a4ee19d98ac97aa3615d6747343dc8da61670b8e6d70e288a4';
             assert.equal(
                 pairCodeHash,
                 expectedValue
@@ -143,7 +143,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             );
 
-            pair = await IUniswapV2Pair.at(pairAddress);
+            pair = await ISwapsPair.at(pairAddress);
             wethBalance = await weth.balanceOf(pairAddress);
             tokenBalance = await token.balanceOf(pairAddress);
 
@@ -173,7 +173,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             );
 
-            pair = await IUniswapV2Pair.at(pairAddress);
+            pair = await ISwapsPair.at(pairAddress);
             ownersBalance = await pair.balanceOf(owner);
 
             assert.isAbove(
