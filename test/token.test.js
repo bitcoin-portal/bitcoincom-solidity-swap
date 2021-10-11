@@ -52,9 +52,34 @@ contract("Token", ([owner, alice, bob, random]) => {
                 18
             );
         });
+
+
+        it("should have correct token supply", async () => {
+            const supply = await token.totalSupply();
+            assert.equal(
+                supply,
+                9e+33
+            );
+        });
+
+        it("should return the correct balance for the given account", async () => {
+            const balance = await token.balanceOf(owner);
+            assert.equal(
+                balance,
+                9e+33
+            );
+        });
+
+        it("should return the correct allowance for the given spender", async () => {
+            const allowance = await token.allowance(owner, bob);
+            assert.equal(
+                allowance,
+                0
+            );
+        });
     });
 
-    describe.only("Token Transfer Functionality", () => {
+    describe("Token Transfer Functionality", () => {
 
         it("should transfer correct amount from walletA to walletB", async () => {
 
@@ -144,6 +169,68 @@ contract("Token", ([owner, alice, bob, random]) => {
             assert.equal(
                 value,
                 transferValue
+            );
+        });
+    });
+
+    describe("Token Approval Functionality", () => {
+        it("should emit a correct Approval event", async () => {
+
+            const transferValue = ONE_TOKEN;
+
+            await token.approve(
+                bob,
+                transferValue,
+                {
+                    from: owner
+                }
+            );
+
+            const { owner: transferOwner, spender, value } = await getLastEvent(
+                "Approval",
+                token
+            );
+
+            assert.equal(
+                transferOwner,
+                owner
+            );
+
+            assert.equal(
+                spender,
+                bob
+            );
+
+            assert.equal(
+                value,
+                transferValue
+            );
+        });
+    });
+
+    describe.only("Burn Functionality", () => {
+        it("should deduct the correct amount from the total supply", async () => {
+            const supplyBefore = await token.balanceOf(owner);
+            const burnAmount = ONE_TOKEN;
+
+            await token.burn(
+                burnAmount,
+                {
+                    from: owner
+                }
+
+            );
+
+            const supplyAfter = await token.balanceOf(owner);
+            const supplyAfter = await token.totalSupply();
+            assert.equal(
+                supplyAfter,
+                supplyBefore - burnAmount
+            );
+
+            assert.equal(
+                totalSupply,
+                supplyBefore - burnAmount
             );
         });
     });
