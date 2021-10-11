@@ -99,8 +99,8 @@ contract WrappedEther {
         balanceOf[msg.sender] =
         balanceOf[msg.sender] - _wad;
 
-        balanceOf[dst] =
-        balanceOf[dst] + _wad;
+        balanceOf[_dst] =
+        balanceOf[_dst] + _wad;
 
         emit Transfer(
             msg.sender,
@@ -119,14 +119,14 @@ contract WrappedEther {
         external
         returns (bool)
     {
-        allowance[src][msg.sender] =
-        allowance[src][msg.sender] - _wad;
+        allowance[_src][msg.sender] =
+        allowance[_src][msg.sender] - _wad;
 
-        balanceOf[src] =
-        balanceOf[src] - _wad;
+        balanceOf[_src] =
+        balanceOf[_src] - _wad;
 
-        balanceOf[dst] =
-        balanceOf[dst] + _wad;
+        balanceOf[_dst] =
+        balanceOf[_dst] + _wad;
 
         emit Transfer(
             _src,
