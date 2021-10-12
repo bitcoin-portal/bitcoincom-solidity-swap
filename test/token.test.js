@@ -63,10 +63,21 @@ contract("Token", ([owner, alice, bob, random]) => {
         });
 
         it("should return the correct balance for the given account", async () => {
-            const balance = await token.balanceOf(owner);
+            const expectedAmount = ONE_TOKEN;
+
+            await token.transfer(
+                bob,
+                expectedAmount,
+                {
+                    from: owner
+                }
+            );
+
+            const balance = await token.balanceOf(bob);
+
             assert.equal(
                 balance,
-                9e+33
+                expectedAmount
             );
         });
 
