@@ -208,7 +208,7 @@ contract("Token", ([owner, alice, bob, random]) => {
         });
     });
 
-    describe.only("Burn Functionality", () => {
+    describe("Burn Functionality", () => {
         it("should deduct the correct amount from the total supply", async () => {
             const supplyBefore = await token.balanceOf(owner);
             const burnAmount = ONE_TOKEN;
@@ -222,7 +222,7 @@ contract("Token", ([owner, alice, bob, random]) => {
             );
 
             const supplyAfter = await token.balanceOf(owner);
-            const supplyAfter = await token.totalSupply();
+            const totalSupply = await token.totalSupply();
             assert.equal(
                 supplyAfter,
                 supplyBefore - burnAmount

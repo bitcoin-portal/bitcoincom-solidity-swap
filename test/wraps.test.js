@@ -197,7 +197,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
         });
     });
 
-    describe.only("Transfer functionality", () => {
+    describe("Transfer functionality", () => {
 
         beforeEach(async () => {
             await weth.deposit({
