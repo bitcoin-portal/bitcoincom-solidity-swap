@@ -15,7 +15,7 @@ contract SwapsRouter is ISwapsRouter {
 
     using SafeMath for uint;
 
-    address public immutable factory;
+    address public immutable FACTORY;
     address public immutable WETH;
 
     modifier ensure(
@@ -32,7 +32,7 @@ contract SwapsRouter is ISwapsRouter {
         address _factory,
         address _WETH
     ) {
-        factory = _factory;
+        FACTORY = _factory;
         WETH = _WETH;
     }
 
@@ -54,12 +54,12 @@ contract SwapsRouter is ISwapsRouter {
         internal
         returns (uint256, uint256)
     {
-        if (ISwapsFactory(factory).getPair(_tokenA, _tokenB) == address(0x0)) {
-            ISwapsFactory(factory).createPair(_tokenA, _tokenB);
+        if (ISwapsFactory(FACTORY).getPair(_tokenA, _tokenB) == address(0x0)) {
+            ISwapsFactory(FACTORY).createPair(_tokenA, _tokenB);
         }
 
         (uint256 reserveA, uint256 reserveB) = SwapsLibrary.getReserves(
-            factory,
+            FACTORY,
             _tokenA,
             _tokenB
         );
@@ -139,7 +139,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         address pair = pairFor(
-            factory,
+            FACTORY,
             tokenA,
             tokenB
         );
@@ -188,7 +188,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         address pair = pairFor(
-            factory,
+            FACTORY,
             token,
             WETH
         );
@@ -240,7 +240,7 @@ contract SwapsRouter is ISwapsRouter {
         )
     {
         address pair = pairFor(
-            factory,
+            FACTORY,
             tokenA,
             tokenB
         );
@@ -323,7 +323,7 @@ contract SwapsRouter is ISwapsRouter {
         )
     {
         address pair = pairFor(
-            factory,
+            FACTORY,
             tokenA,
             tokenB
         );
@@ -374,7 +374,7 @@ contract SwapsRouter is ISwapsRouter {
         )
     {
         address pair = pairFor(
-            factory,
+            FACTORY,
             token,
             WETH
         );
@@ -458,7 +458,7 @@ contract SwapsRouter is ISwapsRouter {
         returns (uint amountETH)
     {
         address pair = pairFor(
-            factory,
+            FACTORY,
             token,
             WETH
         );
@@ -509,12 +509,12 @@ contract SwapsRouter is ISwapsRouter {
                 : (amountOut, uint(0));
 
             address to = i < _path.length - 2
-                ? pairFor(factory, output, _path[i + 2])
+                ? pairFor(FACTORY, output, _path[i + 2])
                 : _to;
 
             ISwapsPair(
                 pairFor(
-                    factory,
+                    FACTORY,
                     input,
                     output
                 )
@@ -539,7 +539,7 @@ contract SwapsRouter is ISwapsRouter {
         returns (uint256[] memory amounts)
     {
         amounts = SwapsLibrary.getAmountsOut(
-            factory,
+            FACTORY,
             amountIn,
             path
         );
@@ -553,7 +553,7 @@ contract SwapsRouter is ISwapsRouter {
             path[0],
             msg.sender,
             pairFor(
-                factory,
+                FACTORY,
                 path[0],
                 path[1]
             ),
@@ -579,7 +579,7 @@ contract SwapsRouter is ISwapsRouter {
         returns (uint256[] memory amounts)
     {
         amounts = SwapsLibrary.getAmountsIn(
-            factory,
+            FACTORY,
             amountOut,
             path
         );
@@ -593,7 +593,7 @@ contract SwapsRouter is ISwapsRouter {
             path[0],
             msg.sender,
             pairFor(
-                factory,
+                FACTORY,
                 path[0],
                 path[1]
             ),
@@ -624,7 +624,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         amounts = SwapsLibrary.getAmountsOut(
-            factory,
+            FACTORY,
             msg.value,
             _path
         );
@@ -641,7 +641,7 @@ contract SwapsRouter is ISwapsRouter {
         assert(
             IWETH(WETH).transfer(
                 pairFor(
-                    factory,
+                    FACTORY,
                     _path[0],
                     _path[1]
                 ),
@@ -673,7 +673,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         amounts = SwapsLibrary.getAmountsIn(
-            factory,
+            FACTORY,
             amountOut,
             path
         );
@@ -687,7 +687,7 @@ contract SwapsRouter is ISwapsRouter {
             path[0],
             msg.sender,
             pairFor(
-                factory,
+                FACTORY,
                 path[0],
                 path[1]
             ),
@@ -727,7 +727,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         amounts = SwapsLibrary.getAmountsOut(
-            factory,
+            FACTORY,
             amountIn,
             path
         );
@@ -741,7 +741,7 @@ contract SwapsRouter is ISwapsRouter {
             path[0],
             msg.sender,
             pairFor(
-                factory,
+                FACTORY,
                 path[0],
                 path[1]
             ),
@@ -781,7 +781,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         amounts = SwapsLibrary.getAmountsIn(
-            factory,
+            FACTORY,
             amountOut,
             path
         );
@@ -798,7 +798,7 @@ contract SwapsRouter is ISwapsRouter {
         assert(
             IWETH(WETH).transfer(
                 pairFor(
-                    factory,
+                    FACTORY,
                     path[0],
                     path[1]
                 ),
@@ -828,7 +828,7 @@ contract SwapsRouter is ISwapsRouter {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0,) = SwapsLibrary.sortTokens(input, output);
-            ISwapsPair pair = ISwapsPair(pairFor(factory, input, output));
+            ISwapsPair pair = ISwapsPair(pairFor(FACTORY, input, output));
             uint amountInput;
             uint amountOutput;
             { // scope to avoid stack too deep errors
@@ -838,7 +838,7 @@ contract SwapsRouter is ISwapsRouter {
             amountOutput = SwapsLibrary.getAmountOut(amountInput, reserveInput, reserveOutput);
             }
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
-            address to = i < path.length - 2 ? pairFor(factory, output, path[i + 2]) : _to;
+            address to = i < path.length - 2 ? pairFor(FACTORY, output, path[i + 2]) : _to;
             pair.swap(amount0Out, amount1Out, to, new bytes(0));
         }
     }
@@ -857,7 +857,7 @@ contract SwapsRouter is ISwapsRouter {
             path[0],
             msg.sender,
             pairFor(
-                factory,
+                FACTORY,
                 path[0],
                 path[1]
             ),
@@ -897,7 +897,7 @@ contract SwapsRouter is ISwapsRouter {
         assert(
             IWETH(WETH).transfer(
                 pairFor(
-                    factory,
+                    FACTORY,
                     path[0],
                     path[1]
                 ),
@@ -938,7 +938,7 @@ contract SwapsRouter is ISwapsRouter {
             path[0],
             msg.sender,
             pairFor(
-                factory,
+                FACTORY,
                 path[0],
                 path[1]
             ),
@@ -1003,33 +1003,33 @@ contract SwapsRouter is ISwapsRouter {
     }
 
     function getAmountIn(
-        uint256 amountOut,
-        uint256 reserveIn,
-        uint256 reserveOut
+        uint256 _amountOut,
+        uint256 _reserveIn,
+        uint256 _reserveOut
     )
         public
         pure
-        returns (uint256 amountIn)
+        returns (uint256)
     {
         return SwapsLibrary.getAmountIn(
-            amountOut,
-            reserveIn,
-            reserveOut
+            _amountOut,
+            _reserveIn,
+            _reserveOut
         );
     }
 
     function getAmountsOut(
-        uint256 amountIn,
-        address[] memory path
+        uint256 _amountIn,
+        address[] memory _path
     )
         public
         view
-        returns (uint256[] memory amounts)
+        returns (uint256[] memory)
     {
         return SwapsLibrary.getAmountsOut(
-            factory,
-            amountIn,
-            path
+            FACTORY,
+            _amountIn,
+            _path
         );
     }
 
@@ -1043,7 +1043,7 @@ contract SwapsRouter is ISwapsRouter {
         returns (uint256[] memory amounts)
     {
         return SwapsLibrary.getAmountsIn(
-            factory,
+            FACTORY,
             amountOut,
             path
         );
