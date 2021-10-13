@@ -324,5 +324,104 @@ contract("Weth", ([owner, alice, bob, random]) => {
                 transferValue
             );
         });
+
+        it("should update the balance of the recipient when using transferFrom", async () => {
+            const transferValue = FOUR_ETH;
+            const balanceBefore = await weth.balanceOf(bob);
+
+            await weth.approve(
+                owner,
+                transferValue,
+                {
+                    from: alice
+                }
+            );
+
+            await weth.transferFrom(
+                alice,
+                bob,
+                transferValue,
+                {
+                    from: owner
+                }
+            );
+
+            const balanceAfter = await weth.balanceOf(bob);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) + parseInt(transferValue)
+            );
+        });
+
+        it("should deduct from the balance of the sender when using transferFrom", async () => {
+            const transferValue = FOUR_ETH;
+            const balanceBefore = await weth.balanceOf(alice);
+
+            await weth.approve(
+                owner,
+                transferValue,
+                {
+                    from: alice
+                }
+            );
+
+            await weth.transferFrom(
+                alice,
+                bob,
+                transferValue,
+                {
+                    from: owner
+                }
+            );
+
+            const balanceAfter = await weth.balanceOf(alice);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) - parseInt(transferValue)
+            );
+        });
+
+        it("should revert if there is no approval when using transferFrom", async () => {
+            const transferValue = FOUR_ETH;
+
+            await catchRevert(
+                weth.transferFrom(
+                    alice,
+                    bob,
+                    transferValue,
+                    {
+                        from: owner
+                    }
+                ),
+                "revert REQUIRES APPROVAL"
+            );
+        });
+
+        it("should revert if the sender has spent more than their approved amount when using transferFrom", async () => {
+            const approvedValue = FOUR_ETH;
+            const transferValue = NINE_ETH;
+
+            await weth.approve(
+                owner,
+                approvedValue,
+                {
+                    from: alice
+                }
+            );
+
+            await catchRevert(
+                weth.transferFrom(
+                    alice,
+                    bob,
+                    transferValue,
+                    {
+                        from: owner
+                    }
+                ),
+                "revert REQUIRES APPROVAL"
+            );
+        });
     });
 });
