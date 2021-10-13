@@ -12,6 +12,11 @@ const BN = web3.utils.BN;
 const APPROVE_VALUE = web3.utils.toWei("1000000");
 
 const ONE_ETH = web3.utils.toWei("1");
+const ONE_TOKEN = web3.utils.toWei("1");
+
+const FOUR_TOKENS = web3.utils.toWei("4");
+const FIVE_TOKENS = web3.utils.toWei("5");
+const NINE_TOKENS = web3.utils.toWei("5");
 
 const FOUR_ETH = web3.utils.toWei("4");
 const FIVE_ETH = web3.utils.toWei("5");
@@ -31,6 +36,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
     let weth;
     let token;
+    let token2;
     let factory;
     let router;
     // let launchTime;
@@ -39,6 +45,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     before(async () => {
         weth = await Weth.new();
         token = await Token.new();
+        token2 = await Token.new();
         factory = await Factory.new(owner);
         router = await Router.new(
             factory.address,
@@ -117,7 +124,63 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
     describe("Router Liquidity", () => {
 
-        it("should be able to addLiquidityETH", async () => {
+        it("should be able to addLiquidity (Tokens)", async () => {
+
+            const depositAmount = FIVE_TOKENS;
+
+            await token.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await token2.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await router.addLiquidity(
+                token.address,
+                token2.address,
+                depositAmount,
+                depositAmount,
+                1,
+                1,
+                owner,
+                170000000000,
+                {from: owner}
+            );
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                token2.address
+            );
+
+            pair = await ISwapsPair.at(pairAddress);
+            tokenBalance = await token.balanceOf(pairAddress);
+            token2Balance = await token2.balanceOf(pairAddress);
+
+            liquidityTokens = await pair.balanceOf(owner);
+
+            assert.isAbove(
+                parseInt(liquidityTokens),
+                parseInt(0)
+            );
+
+            assert.equal(
+                tokenBalance,
+                depositAmount
+            );
+
+            assert.equal(
+                token2Balance,
+                depositAmount
+            );
+        });
+
+        it("should be able to addLiquidityETH (Ether)", async () => {
 
             const depositAmount = FIVE_ETH;
 
@@ -165,7 +228,50 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it("should be able to removeLiquidityETH", async () => {
+        it("should be able to removeLiquidity (Tokens)", async () => {
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                token2.address
+            );
+
+            pair = await ISwapsPair.at(pairAddress);
+            ownersBalance = await pair.balanceOf(owner);
+
+            assert.isAbove(
+                parseInt(ownersBalance),
+                0
+            );
+
+            await pair.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            const allowance = await pair.allowance(
+                owner,
+                router.address
+            );
+
+            assert.equal(
+                allowance,
+                APPROVE_VALUE
+            );
+
+            await router.removeLiquidity(
+                token.address,
+                token2.address,
+                ownersBalance,
+                0,
+                0,
+                owner,
+                1700000000000
+            );
+        });
+
+        it("should be able to removeLiquidityETH (Ether)", async () => {
 
             const pairAddress = await router.pairFor(
                 factory.address,
@@ -325,7 +431,72 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it.skip("should be able to perform a swap (ERC20 > ERC20)", async () => {
+        it("should be able to perform a swap (ERC20 > ERC20)", async () => {
+
+            const depositAmount = FOUR_TOKENS;
+            const swapAmount = ONE_TOKEN;
+
+            await token.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await token2.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await router.addLiquidity(
+                token.address,
+                token2.address,
+                depositAmount,
+                depositAmount,
+                1,
+                1,
+                owner,
+                170000000000,
+                {
+                    from: owner
+                }
+            );
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                token2.address
+            );
+
+            tokenBalanceBefore = await token.balanceOf(
+                pairAddress
+            );
+
+            const path = [
+                token.address,
+                token2.address
+            ];
+
+            await router.swapExactTokensForTokens(
+                swapAmount,
+                0,
+                path,
+                owner,
+                1700000000000,
+                {
+                    from: owner,
+                    gasLimit: 10000000000
+                }
+            );
+
+            tokenBalanceAfter = await token.balanceOf(
+                pairAddress
+            );
+
+            assert.equal(
+                parseInt(tokenBalanceBefore) + parseInt(swapAmount),
+                parseInt(tokenBalanceAfter)
+            );
         });
     });
 });
