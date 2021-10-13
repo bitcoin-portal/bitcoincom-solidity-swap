@@ -7,13 +7,10 @@ import "./IERC20.sol";
 import "./ISwapsFactory.sol";
 import "./ISwapsRouter.sol";
 
-import "./SafeMath.sol";
 import "./SwapsLibrary.sol";
 import "./TransferHelper.sol";
 
 contract SwapsRouter is ISwapsRouter {
-
-    using SafeMath for uint;
 
     address public immutable FACTORY;
     address public immutable WETH;
@@ -23,7 +20,7 @@ contract SwapsRouter is ISwapsRouter {
     ) {
         require(
             _deadline >= block.timestamp,
-            'DEADLINE_EXPIRED'
+            'SwapsRouter: DEADLINE_EXPIRED'
         );
         _;
     }
@@ -36,10 +33,13 @@ contract SwapsRouter is ISwapsRouter {
         WETH = _WETH;
     }
 
-    receive() external payable {
+    receive()
+        external
+        payable
+    {
         require(
             msg.sender == WETH,
-            'INVALID_ETH_SENDER'
+            'SwapsRouter: INVALID_SENDER'
         );
     }
 
@@ -78,7 +78,6 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         if (amountBOptimal <= _amountBDesired) {
-
             require(
                 amountBOptimal >= _amountBMin,
                 'INSUFFICIENT_B_AMOUNT'
@@ -112,17 +111,17 @@ contract SwapsRouter is ISwapsRouter {
     }
 
     function addLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 amountADesired,
-        uint256 amountBDesired,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
+        address _tokenA,
+        address _tokenB,
+        uint256 _amountADesired,
+        uint256 _amountBDesired,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
+        address _to,
+        uint256 _deadline
     )
         external
-        ensure(deadline)
+        ensure(_deadline)
         returns (
             uint256 amountA,
             uint256 amountB,
@@ -130,48 +129,48 @@ contract SwapsRouter is ISwapsRouter {
         )
     {
         (amountA, amountB) = _addLiquidity(
-            tokenA,
-            tokenB,
-            amountADesired,
-            amountBDesired,
-            amountAMin,
-            amountBMin
+            _tokenA,
+            _tokenB,
+            _amountADesired,
+            _amountBDesired,
+            _amountAMin,
+            _amountBMin
         );
 
         address pair = pairFor(
             FACTORY,
-            tokenA,
-            tokenB
+            _tokenA,
+            _tokenB
         );
 
         safeTransferFrom(
-            tokenA,
+            _tokenA,
             msg.sender,
             pair,
             amountA
         );
 
         safeTransferFrom(
-            tokenB,
+            _tokenB,
             msg.sender,
             pair,
             amountB
         );
 
-        liquidity = ISwapsPair(pair).mint(to);
+        liquidity = ISwapsPair(pair).mint(_to);
     }
 
     function addLiquidityETH(
-        address token,
-        uint256 amountTokenDesired,
-        uint256 amountTokenMin,
-        uint256 amountETHMin,
-        address to,
-        uint256 deadline
+        address _token,
+        uint256 _amountTokenDesired,
+        uint256 _amountTokenMin,
+        uint256 _amountETHMin,
+        address _to,
+        uint256 _deadline
     )
         external
         payable
-        ensure(deadline)
+        ensure(_deadline)
         returns (
             uint256 amountToken,
             uint256 amountETH,
@@ -179,22 +178,22 @@ contract SwapsRouter is ISwapsRouter {
         )
     {
         (amountToken, amountETH) = _addLiquidity(
-            token,
+            _token,
             WETH,
-            amountTokenDesired,
+            _amountTokenDesired,
             msg.value,
-            amountTokenMin,
-            amountETHMin
+            _amountTokenMin,
+            _amountETHMin
         );
 
         address pair = pairFor(
             FACTORY,
-            token,
+            _token,
             WETH
         );
 
         safeTransferFrom(
-            token,
+            _token,
             msg.sender,
             pair,
             amountToken
@@ -211,7 +210,7 @@ contract SwapsRouter is ISwapsRouter {
             )
         );
 
-        liquidity = ISwapsPair(pair).mint(to);
+        liquidity = ISwapsPair(pair).mint(_to);
 
         if (msg.value > amountETH) {
             unchecked {
@@ -224,16 +223,16 @@ contract SwapsRouter is ISwapsRouter {
     }
 
     function removeLiquidity(
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline
+        address _tokenA,
+        address _tokenB,
+        uint256 _liquidity,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
+        address _to,
+        uint256 _deadline
     )
         public
-        ensure(deadline)
+        ensure(_deadline)
         returns (
             uint256 amountA,
             uint256 amountB
@@ -241,55 +240,66 @@ contract SwapsRouter is ISwapsRouter {
     {
         address pair = pairFor(
             FACTORY,
-            tokenA,
-            tokenB
+            _tokenA,
+            _tokenB
         );
 
         ISwapsPair(pair).transferFrom(
             msg.sender,
             pair,
-            liquidity
+            _liquidity
         );
 
-        (uint amount0, uint amount1) = ISwapsPair(pair).burn(to);
-        (address token0,) = SwapsLibrary.sortTokens(tokenA, tokenB);
+        (uint amount0, uint amount1) = ISwapsPair(pair).burn(_to);
 
-        (amountA, amountB) = tokenA == token0
+        (address token0,) = SwapsLibrary.sortTokens(
+            _tokenA,
+            _tokenB
+        );
+
+        (amountA, amountB) = _tokenA == token0
             ? (amount0, amount1)
             : (amount1, amount0);
 
-        require(amountA >= amountAMin, 'INSUFFICIENT_A_AMOUNT');
-        require(amountB >= amountBMin, 'INSUFFICIENT_B_AMOUNT');
+        require(
+            amountA >= _amountAMin,
+            'INSUFFICIENT_A_AMOUNT'
+        );
+
+        require(
+            amountB >= _amountBMin,
+            'INSUFFICIENT_B_AMOUNT'
+        );
     }
 
     function removeLiquidityETH(
-        address token,
-        uint256 liquidity,
-        uint256 amountTokenMin,
-        uint256 amountETHMin,
-        address to,
-        uint256 deadline
+        address _token,
+        uint256 _liquidity,
+        uint256 _amountTokenMin,
+        uint256 _amountETHMin,
+        address _to,
+        uint256 _deadline
     )
         public
-        ensure(deadline)
+        ensure(_deadline)
         returns (
             uint256 amountToken,
             uint256 amountETH
         )
     {
         (amountToken, amountETH) = removeLiquidity(
-            token,
+            _token,
             WETH,
-            liquidity,
-            amountTokenMin,
-            amountETHMin,
+            _liquidity,
+            _amountTokenMin,
+            _amountETHMin,
             address(this),
-            deadline
+            _deadline
         );
 
         safeTransfer(
-            token,
-            to,
+            _token,
+            _to,
             amountToken
         );
 
@@ -298,7 +308,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         safeTransferETH(
-            to,
+            _to,
             amountETH
         );
     }
@@ -396,6 +406,7 @@ contract SwapsRouter is ISwapsRouter {
     }
 
     // **** REMOVE LIQUIDITY (supporting fee-on-transfer tokens) ****
+
     function removeLiquidityETHSupportingFeeOnTransferTokens(
         address token,
         uint256 liquidity,
@@ -488,7 +499,11 @@ contract SwapsRouter is ISwapsRouter {
     {
         for (uint i; i < _path.length - 1; i++) {
 
-            (address input, address output) = (_path[i], _path[i + 1]);
+            (address input, address output) = (
+                _path[i],
+                _path[i + 1]
+            );
+
             (address token0,) = SwapsLibrary.sortTokens(
                 input,
                 output
@@ -816,7 +831,7 @@ contract SwapsRouter is ISwapsRouter {
     }
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
-    // requires the initial amount to have already been sent to the first pair
+
     function _swapSupportingFeeOnTransferTokens(
         address[] memory path,
         address _to
@@ -824,20 +839,47 @@ contract SwapsRouter is ISwapsRouter {
         internal
     {
         for (uint i; i < path.length - 1; i++) {
-            (address input, address output) = (path[i], path[i + 1]);
-            (address token0,) = SwapsLibrary.sortTokens(input, output);
-            ISwapsPair pair = ISwapsPair(pairFor(FACTORY, input, output));
+
+            (address input, address output) = (
+                path[i],
+                path[i + 1]
+            );
+
+            (address token0,) = SwapsLibrary.sortTokens(
+                input,
+                output
+            );
+
+            ISwapsPair pair = ISwapsPair(
+                pairFor(
+                    FACTORY,
+                    input,
+                    output
+                )
+            );
+
             uint amountInput;
             uint amountOutput;
+
             { // scope to avoid stack too deep errors
             (uint reserve0, uint reserve1,) = pair.getReserves();
-            (uint reserveInput, uint reserveOutput) = input == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
-            amountInput = IERC20(input).balanceOf(address(pair)).sub(reserveInput);
+
+            (uint reserveInput, uint reserveOutput) = input == token0
+                ? (reserve0, reserve1)
+                : (reserve1, reserve0);
+
+            amountInput = IERC20(input).balanceOf(address(pair)) - reserveInput;
             amountOutput = SwapsLibrary.getAmountOut(amountInput, reserveInput, reserveOutput);
             }
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
             address to = i < path.length - 2 ? pairFor(FACTORY, output, path[i + 2]) : _to;
-            pair.swap(amount0Out, amount1Out, to, new bytes(0));
+
+            pair.swap(
+                amount0Out,
+                amount1Out,
+                to,
+                new bytes(0)
+            );
         }
     }
 
@@ -916,7 +958,7 @@ contract SwapsRouter is ISwapsRouter {
         );
 
         require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
+            IERC20(path[path.length - 1]).balanceOf(to) - balanceBefore >= amountOutMin,
             'INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
@@ -972,6 +1014,7 @@ contract SwapsRouter is ISwapsRouter {
     }
 
     // **** LIBRARY FUNCTIONS ****
+
     function quote(
         uint256 _amountA,
         uint256 _reserveA,
