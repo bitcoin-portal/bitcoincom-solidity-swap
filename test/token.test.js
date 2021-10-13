@@ -182,6 +182,88 @@ contract("Token", ([owner, alice, bob, random]) => {
                 transferValue
             );
         });
+
+        it("should update the balance of the recipient when using transferFrom", async () => {
+            const transferValue = ONE_TOKEN;
+            const expectedRecipient = bob;
+            const balanceBefore = await token.balanceOf(bob);
+
+            await token.approve(
+                owner,
+                transferValue
+            );
+
+            await token.transferFrom(
+                owner,
+                expectedRecipient,
+                transferValue,
+            );
+
+            const balanceAfter = await token.balanceOf(bob);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) + parseInt(transferValue)
+            );
+        });
+
+        it("should deduct from the balance of the sender when using transferFrom", async () => {
+            const transferValue = ONE_TOKEN;
+            const expectedRecipient = bob;
+            const balanceBefore = await token.balanceOf(owner);
+
+            await token.approve(
+                owner,
+                transferValue
+            );
+
+            await token.transferFrom(
+                owner,
+                expectedRecipient,
+                transferValue,
+            );
+
+            const balanceAfter = await token.balanceOf(owner);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) - parseInt(transferValue)
+            );
+        });
+
+        it("should revert if there is no approval when using transferFrom", async () => {
+            const transferValue = ONE_TOKEN;
+            const expectedRecipient = bob;
+
+            await catchRevert(
+                token.transferFrom(
+                    owner,
+                    expectedRecipient,
+                    transferValue
+                ),
+                "revert REQUIRES APPROVAL"
+            );
+        });
+
+        it("should revert if the sender has spent more than their approved amount when using transferFrom", async () => {
+            const approvedValue = ONE_TOKEN;
+            const transferValue = FIVE_ETH;
+            const expectedRecipient = bob;
+
+            await token.approve(
+                owner,
+                approvedValue
+            );
+
+            await catchRevert(
+                token.transferFrom(
+                    owner,
+                    expectedRecipient,
+                    transferValue
+                ),
+                "revert AMOUNT EXCEEDS APPROVED VALUE"
+            );
+        });
     });
 
     describe("Token Approval Functionality", () => {
