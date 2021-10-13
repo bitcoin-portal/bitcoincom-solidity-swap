@@ -15,7 +15,7 @@
         "test-token": "npx truffle test test/token.test.js",
         "test-swaps": "npx truffle test test/swaps.test.js",
         "test-wraps": "npx truffle test test/wraps.test.js",
-		"test-coverage": "npx truffle run coverage --network development",
+		"test-coverage": "npx truffle run coverage --network development --testfiles \"test/swaps.test.js\"",
         "flat-file": "cd contracts && truffle-flattener fileName.sol > ../flats/fileName.sol",
 		"docs": "oz-docs",
 		"lint:sol:fix": "prettier --write \"contracts/**/*.sol\"",
