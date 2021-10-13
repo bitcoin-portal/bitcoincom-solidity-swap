@@ -264,7 +264,65 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it.skip("should be able to perform a swap (ERC20 > ETH)", async () => {
+        it("should be able to perform a swap (ERC20 > ETH)", async () => {
+
+            const depositAmount = FIVE_ETH;
+            const swapAmount = FOUR_ETH;
+
+            await token.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await router.addLiquidityETH(
+                token.address,
+                STATIC_SUPPLY,
+                0,
+                0,
+                owner,
+                170000000000,
+                {
+                    from: owner,
+                    value: depositAmount
+                }
+            );
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            tokenBalanceBefore = await token.balanceOf(
+                pairAddress
+            );
+
+            const path = [
+                token.address,
+                weth.address
+            ];
+
+            await router.swapExactTokensForETH(
+                swapAmount,
+                0,
+                path,
+                owner,
+                1700000000000,
+                {
+                    from: owner,
+                    gasLimit: 10000000000
+                }
+            );
+
+            tokenBalanceAfter = await token.balanceOf(
+                pairAddress
+            );
+
+            assert.equal(
+                parseInt(tokenBalanceBefore) + parseInt(swapAmount),
+                parseInt(tokenBalanceAfter)
+            );
         });
 
         it.skip("should be able to perform a swap (ERC20 > ERC20)", async () => {
