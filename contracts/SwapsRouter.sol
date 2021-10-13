@@ -226,17 +226,17 @@ contract SwapsRouter is ISwapsRouter {
     function removeLiquidity(
         address tokenA,
         address tokenB,
-        uint liquidity,
-        uint amountAMin,
-        uint amountBMin,
+        uint256 liquidity,
+        uint256 amountAMin,
+        uint256 amountBMin,
         address to,
-        uint deadline
+        uint256 deadline
     )
         public
         ensure(deadline)
         returns (
-            uint amountA,
-            uint amountB
+            uint256 amountA,
+            uint256 amountB
         )
     {
         address pair = pairFor(
@@ -317,10 +317,7 @@ contract SwapsRouter is ISwapsRouter {
         bytes32 s
     )
         external
-        returns (
-            uint amountA,
-            uint amountB
-        )
+        returns (uint256, uint256)
     {
         address pair = pairFor(
             FACTORY,
@@ -342,7 +339,7 @@ contract SwapsRouter is ISwapsRouter {
             s
         );
 
-        (amountA, amountB) = removeLiquidity(
+        return removeLiquidity(
             tokenA,
             tokenB,
             liquidity,
@@ -366,12 +363,7 @@ contract SwapsRouter is ISwapsRouter {
         bytes32 s
     )
         external
-        virtual
-        override
-        returns (
-            uint amountToken,
-            uint amountETH
-        )
+        returns (uint256, uint256)
     {
         address pair = pairFor(
             FACTORY,
@@ -393,7 +385,7 @@ contract SwapsRouter is ISwapsRouter {
             s
         );
 
-        (amountToken, amountETH) = removeLiquidityETH(
+        return removeLiquidityETH(
             token,
             liquidity,
             amountTokenMin,
@@ -444,11 +436,11 @@ contract SwapsRouter is ISwapsRouter {
 
     function removeLiquidityETHWithPermitSupportingFeeOnTransferTokens(
         address token,
-        uint liquidity,
-        uint amountTokenMin,
-        uint amountETHMin,
+        uint256 liquidity,
+        uint256 amountTokenMin,
+        uint256 amountETHMin,
         address to,
-        uint deadline,
+        uint256 deadline,
         bool approveMax,
         uint8 v,
         bytes32 r,
@@ -715,10 +707,10 @@ contract SwapsRouter is ISwapsRouter {
         uint256 amountOutMin,
         address[] calldata path,
         address to,
-        uint256 deadline
+        uint256 _deadline
     )
         external
-        ensure(deadline)
+        ensure(_deadline)
         returns (uint256[] memory amounts)
     {
         require(
@@ -811,6 +803,7 @@ contract SwapsRouter is ISwapsRouter {
             path,
             to
         );
+
         // refund dust eth, if any
         if (msg.value > amounts[0]) {
             unchecked {
@@ -824,7 +817,12 @@ contract SwapsRouter is ISwapsRouter {
 
     // **** SWAP (supporting fee-on-transfer tokens) ****
     // requires the initial amount to have already been sent to the first pair
-    function _swapSupportingFeeOnTransferTokens(address[] memory path, address _to) internal virtual {
+    function _swapSupportingFeeOnTransferTokens(
+        address[] memory path,
+        address _to
+    )
+        internal
+    {
         for (uint i; i < path.length - 1; i++) {
             (address input, address output) = (path[i], path[i + 1]);
             (address token0,) = SwapsLibrary.sortTokens(input, output);
@@ -866,9 +864,13 @@ contract SwapsRouter is ISwapsRouter {
 
         uint256 balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
 
-        _swapSupportingFeeOnTransferTokens(path, to);
+        _swapSupportingFeeOnTransferTokens(
+            path,
+            to
+        );
+
         require(
-            IERC20(path[path.length - 1]).balanceOf(to).sub(balanceBefore) >= amountOutMin,
+            IERC20(path[path.length - 1]).balanceOf(to) - balanceBefore >= amountOutMin,
             'INSUFFICIENT_OUTPUT_AMOUNT'
         );
     }
@@ -971,34 +973,34 @@ contract SwapsRouter is ISwapsRouter {
 
     // **** LIBRARY FUNCTIONS ****
     function quote(
-        uint256 amountA,
-        uint256 reserveA,
-        uint256 reserveB
+        uint256 _amountA,
+        uint256 _reserveA,
+        uint256 _reserveB
     )
         public
         pure
-        returns (uint256 amountB)
+        returns (uint256)
     {
         return SwapsLibrary.quote(
-            amountA,
-            reserveA,
-            reserveB
+            _amountA,
+            _reserveA,
+            _reserveB
         );
     }
 
     function getAmountOut(
-        uint256 amountIn,
-        uint256 reserveIn,
-        uint256 reserveOut
+        uint256 _amountIn,
+        uint256 _reserveIn,
+        uint256 _reserveOut
     )
         public
         pure
-        returns (uint256 amountOut)
+        returns (uint256)
     {
         return SwapsLibrary.getAmountOut(
-            amountIn,
-            reserveIn,
-            reserveOut
+            _amountIn,
+            _reserveIn,
+            _reserveOut
         );
     }
 
@@ -1040,7 +1042,7 @@ contract SwapsRouter is ISwapsRouter {
     )
         public
         view
-        returns (uint256[] memory amounts)
+        returns (uint256[] memory)
     {
         return SwapsLibrary.getAmountsIn(
             FACTORY,

@@ -39,14 +39,14 @@ library SwapsLibrary {
     )
         internal
         pure
-        returns (address pair)
+        returns (address)
     {
         (address token0, address token1) = sortTokens(
             tokenA,
             tokenB
         );
 
-        pair = address(
+        return address(
             uint160(
                 uint256(
                     keccak256(
@@ -60,7 +60,7 @@ library SwapsLibrary {
                                 )
                             ),
                             // hex'4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80'
-                            hex'62919180ffb998a4ee19d98ac97aa3615d6747343dc8da61670b8e6d70e288a4'
+                            hex'a2a97ef919a8b385dd42226c0480498cfb0b769b088d1e0574645339ce330e95'
                         )
                     )
                 )
@@ -69,6 +69,7 @@ library SwapsLibrary {
     }
 
     // fetches and sorts the reserves for a pair
+
     function getReserves(
         address factory,
         address tokenA,
@@ -185,6 +186,7 @@ library SwapsLibrary {
 
     // performs chained getAmountOut
     // calculations on any number of pairs
+
     function getAmountsOut(
         address factory,
         uint amountIn,
