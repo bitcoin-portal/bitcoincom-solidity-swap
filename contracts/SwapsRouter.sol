@@ -143,14 +143,14 @@ contract SwapsRouter is ISwapsRouter {
             _tokenB
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             _tokenA,
             msg.sender,
             pair,
             amountA
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             _tokenB,
             msg.sender,
             pair,
@@ -192,7 +192,7 @@ contract SwapsRouter is ISwapsRouter {
             WETH
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             _token,
             msg.sender,
             pair,
@@ -297,7 +297,7 @@ contract SwapsRouter is ISwapsRouter {
             _deadline
         );
 
-        safeTransfer(
+        _safeTransfer(
             _token,
             _to,
             amountToken
@@ -314,49 +314,49 @@ contract SwapsRouter is ISwapsRouter {
     }
 
     function removeLiquidityWithPermit(
-        address tokenA,
-        address tokenB,
-        uint256 liquidity,
-        uint256 amountAMin,
-        uint256 amountBMin,
-        address to,
-        uint256 deadline,
-        bool approveMax,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        address _tokenA,
+        address _tokenB,
+        uint256 _liquidity,
+        uint256 _amountAMin,
+        uint256 _amountBMin,
+        address _to,
+        uint256 _deadline,
+        bool _approveMax,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
     )
         external
         returns (uint256, uint256)
     {
         address pair = pairFor(
             FACTORY,
-            tokenA,
-            tokenB
+            _tokenA,
+            _tokenB
         );
 
-        uint value = approveMax
+        uint value = _approveMax
             ? U256_MAX
-            : liquidity;
+            : _liquidity;
 
         ISwapsPair(pair).permit(
             msg.sender,
             address(this),
             value,
-            deadline,
-            v,
-            r,
-            s
+            _deadline,
+            _v,
+            _r,
+            _s
         );
 
         return removeLiquidity(
-            tokenA,
-            tokenB,
-            liquidity,
-            amountAMin,
-            amountBMin,
-            to,
-            deadline
+            _tokenA,
+            _tokenB,
+            _liquidity,
+            _amountAMin,
+            _amountBMin,
+            _to,
+            _deadline
         );
     }
 
@@ -429,7 +429,7 @@ contract SwapsRouter is ISwapsRouter {
             deadline
         );
 
-        safeTransfer(
+        _safeTransfer(
             token,
             to,
             IERC20(token).balanceOf(address(this))
@@ -458,7 +458,7 @@ contract SwapsRouter is ISwapsRouter {
         bytes32 s
     )
         external
-        returns (uint amountETH)
+        returns (uint256 amountETH)
     {
         address pair = pairFor(
             FACTORY,
@@ -556,7 +556,7 @@ contract SwapsRouter is ISwapsRouter {
             'INSUFFICIENT_OUTPUT_AMOUNT'
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             path[0],
             msg.sender,
             pairFor(
@@ -596,7 +596,7 @@ contract SwapsRouter is ISwapsRouter {
             'EXCESSIVE_INPUT_AMOUNT'
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             path[0],
             msg.sender,
             pairFor(
@@ -690,7 +690,7 @@ contract SwapsRouter is ISwapsRouter {
             'EXCESSIVE_INPUT_AMOUNT'
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             path[0],
             msg.sender,
             pairFor(
@@ -744,7 +744,7 @@ contract SwapsRouter is ISwapsRouter {
             'INSUFFICIENT_OUTPUT_AMOUNT'
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             path[0],
             msg.sender,
             pairFor(
@@ -893,7 +893,7 @@ contract SwapsRouter is ISwapsRouter {
         external
         ensure(deadline)
     {
-        safeTransferFrom(
+        _safeTransferFrom(
             path[0],
             msg.sender,
             pairFor(
@@ -975,10 +975,10 @@ contract SwapsRouter is ISwapsRouter {
     {
         require(
             path[path.length - 1] == WETH,
-            'INVALID_PATH'
+            'SwapsRouter: INVALID_PATH'
         );
 
-        safeTransferFrom(
+        _safeTransferFrom(
             path[0],
             msg.sender,
             pairFor(

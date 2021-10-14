@@ -4,25 +4,80 @@ pragma solidity ^0.8.9;
 
 uint256 constant U256_MAX = 2 ** 256 - 1;
 
-function safeApprove(address token, address to, uint value) {
-    // bytes4(keccak256(bytes('approve(address,uint256)')));
-    (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x095ea7b3, to, value));
-    require(success && (data.length == 0 || abi.decode(data, (bool))), 'APPROVE_FAILED');
+bytes4 constant TRANSFER = bytes4(
+    keccak256(
+        bytes(
+            'transfer(address,uint256)'
+        )
+    )
+);
+
+bytes4 constant TRANSFER_FROM = bytes4(
+    keccak256(
+        bytes(
+            'transferFrom(address,address,uint256)'
+        )
+    )
+);
+
+function _safeTransfer(
+    address _token,
+    address _to,
+    uint256 _value
+) {
+    (bool success, bytes memory data) = _token.call(
+        abi.encodeWithSelector(
+            TRANSFER,
+            _to,
+            _value
+        )
+    );
+
+    require(
+        success == true && (
+            data.length == 0 || abi.decode(
+                data, (bool)
+            )
+        ),
+        'TRANSFER_FAILED'
+    );
 }
 
-function safeTransfer(address token, address to, uint value) {
-    // bytes4(keccak256(bytes('transfer(address,uint256)')));
-    (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0xa9059cbb, to, value));
-    require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER_FAILED');
+function _safeTransferFrom(
+    address _token,
+    address _from,
+    address _to,
+    uint256 _value
+) {
+    (bool success, bytes memory data) = _token.call(
+        abi.encodeWithSelector(
+            TRANSFER_FROM,
+            _from,
+            _to,
+            _value
+        )
+    );
+
+    require(
+        success == true && (
+            data.length == 0 || abi.decode(
+                data, (bool)
+            )
+        ),
+        'TRANSFER_FROM_FAILED'
+    );
 }
 
-function safeTransferFrom(address token, address from, address to, uint value) {
-    // bytes4(keccak256(bytes('transferFrom(address,address,uint256)')));
-    (bool success, bytes memory data) = token.call(abi.encodeWithSelector(0x23b872dd, from, to, value));
-    require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER_FROM_FAILED');
-}
+function safeTransferETH(
+    address to,
+    uint value
+) {
+    (bool success,) = to.call{
+        value: value
+    }(new bytes(0));
 
-function safeTransferETH(address to, uint value) {
-    (bool success,) = to.call{value:value}(new bytes(0));
-    require(success, 'ETH_TRANSFER_FAILED');
+    require(
+        success == true,
+        'ETH_TRANSFER_FAILED'
+    );
 }

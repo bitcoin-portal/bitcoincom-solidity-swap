@@ -239,6 +239,15 @@ contract Token {
 
     function _msgSender()
         internal
+        returns (address)
+    {
+        return msg.sender;
+    }
+
+    // this should be used for metaTransactions
+    // or with permit functionality 0.8.0
+    /*function _msgSender()
+        internal
         view
         returns(address sender)
     {
@@ -254,4 +263,5 @@ contract Token {
         }
         return sender;
     }
+    */
 }
