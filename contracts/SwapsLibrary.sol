@@ -59,7 +59,10 @@ library SwapsLibrary {
                                     token1
                                 )
                             ),
-                            // hex'4e769ee398923525ee6655071d658be32e15b33e7786e3b22f916b37ac05be80'
+                            // during coverage-test
+                            // hex'f85100c5b6bd2acdaf0e8fe3b39924185db313b605f5d568c071e82fe0766fc7'
+
+                            // during regular-test
                             hex'a2a97ef919a8b385dd42226c0480498cfb0b769b088d1e0574645339ce330e95'
                         )
                     )

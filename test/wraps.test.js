@@ -3,6 +3,8 @@ const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 require("./utils");
 const BN = web3.utils.BN;
 
+const ONE_ETH = web3.utils.toWei("1");
+
 const FOUR_ETH = web3.utils.toWei("4");
 const FIVE_ETH = web3.utils.toWei("5");
 const NINE_ETH = web3.utils.toWei("9");
@@ -144,19 +146,21 @@ contract("Weth", ([owner, alice, bob, random]) => {
     });
 
     describe("Withdraw functionality", () => {
+
         beforeEach(async () => {
             await weth.deposit({
-                value: NINE_ETH,
+                value: ONE_ETH,
                 from: alice
             });
         });
 
         it("should deduct the correct amount", async () => {
+
             const balanceBefore = await weth.balanceOf(alice);
-            const withdrawalAmount = FOUR_ETH;
+            const withdrawalAmount = ONE_ETH;
 
             await weth.withdraw(
-                FOUR_ETH,
+                ONE_ETH,
                 {
                     from: alice
                 }
@@ -171,7 +175,8 @@ contract("Weth", ([owner, alice, bob, random]) => {
         });
 
         it("should emit the correct withdrawal event", async () => {
-            const amount = FOUR_ETH;
+
+            const amount = ONE_ETH;
 
             await weth.withdraw(
                 amount,
@@ -400,6 +405,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
         });
 
         it("should revert if the sender has spent more than their approved amount when using transferFrom", async () => {
+
             const approvedValue = FOUR_ETH;
             const transferValue = NINE_ETH;
 

@@ -10,6 +10,7 @@ const BN = (value) => {
 
 // TESTING PARAMETERS
 const ONE_TOKEN = web3.utils.toWei("1");
+const FOUR_ETH = web3.utils.toWei("3");
 const FIVE_ETH = web3.utils.toWei("5");
 const STATIC_SUPPLY = web3.utils.toWei("5000000");
 
@@ -251,11 +252,11 @@ contract("Token", ([owner, alice, bob, random]) => {
         it("should revert if the sender has spent more than their approved amount when using transferFrom", async () => {
 
             const approvedValue = ONE_TOKEN;
-            const transferValue = FIVE_ETH;
+            const transferValue = FOUR_ETH;
             const expectedRecipient = bob;
 
             await token.approve(
-                owner,
+                alice,
                 approvedValue
             );
 
@@ -263,7 +264,10 @@ contract("Token", ([owner, alice, bob, random]) => {
                 token.transferFrom(
                     owner,
                     expectedRecipient,
-                    transferValue
+                    transferValue,
+                    {
+                        from: alice
+                    }
                 ),
                 "revert AMOUNT EXCEEDS APPROVED VALUE"
             );
