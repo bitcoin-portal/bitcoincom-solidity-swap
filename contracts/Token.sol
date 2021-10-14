@@ -239,6 +239,7 @@ contract Token {
 
     function _msgSender()
         internal
+        view
         returns (address)
     {
         return msg.sender;

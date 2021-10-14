@@ -12,7 +12,7 @@ function encode(
     returns (uint224)
 {
     unchecked {
-        return uint224(_y) * Q112; // never overflows
+        return uint224(_y) * Q112;
     }
 }
 
@@ -24,6 +24,6 @@ function uqdiv(
     returns (uint224)
 {
     unchecked {
-        return _x / uint224(_y); // pre-checked above zero
+        return _x / uint224(_y);
     }
 }
