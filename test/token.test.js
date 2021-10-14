@@ -452,8 +452,6 @@ contract("Token", ([owner, alice, bob, random]) => {
             const mintWallet = bob;
             const mintAmount = ONE_TOKEN;
 
-            const supplyBefore = await token.balanceOf(mintWallet);
-
             await catchRevert(
                 token.mintByMaster(
                     mintAmount,
