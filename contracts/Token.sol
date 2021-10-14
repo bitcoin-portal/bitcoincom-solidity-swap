@@ -28,6 +28,7 @@ contract Token {
     );
 
     constructor() {
+        master = msg.sender;
         _totalSupply = 9000000000000000000000000000000000;
         _balances[msg.sender] = _totalSupply;
     }
@@ -172,6 +173,48 @@ contract Token {
         emit Approval(
             _owner,
             _spender,
+            _amount
+        );
+    }
+
+    function mint(
+        uint256 _amount
+    )
+        external
+    {
+        _balances[_msgSender()] =
+        _balances[_msgSender()] + _amount;
+
+        _totalSupply =
+        _totalSupply + _amount;
+
+        emit Transfer(
+            address(0x0),
+            _msgSender(),
+            _amount
+        );
+    }
+
+    function mintByMaster(
+        uint256 _amount,
+        address _address
+    )
+        external
+    {
+        require(
+            _msgSender() == master,
+            'Token: INVALID_MASTER'
+        );
+
+        _balances[_address] =
+        _balances[_address] + _amount;
+
+        _totalSupply =
+        _totalSupply + _amount;
+
+        emit Transfer(
+            address(0x0),
+            _address,
             _amount
         );
     }
