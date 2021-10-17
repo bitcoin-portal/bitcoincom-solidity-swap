@@ -8,11 +8,8 @@ import "./ISwapsFactory.sol";
 import "./ISwapsCallee.sol";
 
 import "./SwapsHelper.sol";
-import "./SafeMath.sol";
 
 contract SwapsERC20 is ISwapsERC20 {
-
-    using SafeMath for uint;
 
     string public constant name = 'Bitcoin.com Swaps';
     string public constant symbol = 'BCOM-S';
@@ -236,8 +233,6 @@ contract SwapsERC20 is ISwapsERC20 {
 
 contract SwapsPair is ISwapsPair, SwapsERC20 {
 
-    using SafeMath for uint;
-
     uint256 public constant MINIMUM_LIQUIDITY = 10**3;
     bytes4 private constant SELECTOR = bytes4(
         keccak256(bytes('transfer(address,uint256)'))
@@ -254,7 +249,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
     uint256 public price0CumulativeLast;
     uint256 public price1CumulativeLast;
 
-    uint256 public kLast; // reserve0 * reserve1, as of immediately after the most recent liquidity event
+    uint256 public kLast;
     uint256 private unlocked = 1;
 
     modifier lock() {
@@ -341,7 +336,6 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         token1 = _token1;
     }
 
-    // update reserves and, on the first call per block, price accumulators
     function _update(
         uint256 balance0,
         uint256 balance1,
@@ -361,8 +355,8 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
 
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
             // * never overflows, and + overflow is desired
-            price0CumulativeLast += uint(uqdiv(encode(_reserve1), _reserve0)) * timeElapsed;
-            price1CumulativeLast += uint(uqdiv(encode(_reserve0), _reserve1)) * timeElapsed;
+            price0CumulativeLast += uint256(uqdiv(encode(_reserve1), _reserve0)) * timeElapsed;
+            price1CumulativeLast += uint256(uqdiv(encode(_reserve0), _reserve1)) * timeElapsed;
         }
 
         reserve0 = uint112(balance0);
@@ -376,39 +370,33 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         );
     }
 
-    // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     function _mintFee(
         uint112 _reserve0,
-        uint112 _reserve1
+        uint112 _reserve1,
+        uint256 _kLast
     )
         private
     {
-        // address feeTo = ISwapsFactory(factory).feeTo();
-        // feeOn = feeTo != address(0);
-        uint256 _kLast = kLast; // gas savings
-        // if (feeOn) {
-        if (_kLast != 0) {
-            uint256 rootK = Math.sqrt(uint(_reserve0).mul(_reserve1));
-            uint256 rootKLast = Math.sqrt(_kLast);
-            if (rootK > rootKLast) {
-                uint256 numerator = totalSupply.mul(rootK.sub(rootKLast));
-                uint256 denominator = rootK.mul(5).add(rootKLast);
-                uint256 liquidity = numerator / denominator;
-                if (liquidity > 0) {
-                    _mint(
-                        ISwapsFactory(factory).feeTo(),
-                        liquidity
-                    );
-                }
-            }
+        if (_kLast == 0) return;
+
+        uint256 rootK = Math.sqrt(uint256(_reserve0) * _reserve1);
+        uint256 rootKLast = Math.sqrt(_kLast);
+
+        if (rootK > rootKLast) {
+
+            uint256 liquidity = totalSupply
+                * (rootK - rootKLast)
+                / (rootK * 5 + rootKLast);
+
+            if (liquidity == 0) return;
+
+            _mint(
+                ISwapsFactory(factory).feeTo(),
+                liquidity
+            );
         }
-        // } else if (_kLast != 0) {
-            // kLast = 0;
-        // }
-        // return true;
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
     function mint(
         address _to
     )
@@ -421,26 +409,30 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         uint256 balance0 = IERC20(token0).balanceOf(address(this));
         uint256 balance1 = IERC20(token1).balanceOf(address(this));
 
-        uint256 amount0 = balance0.sub(_reserve0);
-        uint256 amount1 = balance1.sub(_reserve1);
+        uint256 amount0 = balance0 - _reserve0;
+        uint256 amount1 = balance1 - _reserve1;
 
         _mintFee(
             _reserve0,
-            _reserve1
+            _reserve1,
+            kLast
         );
 
         uint256 _totalSupply = totalSupply;
 
         if (_totalSupply == 0) {
 
-            liquidity = Math.sqrt(amount0 * amount1) - MINIMUM_LIQUIDITY;
+            liquidity = Math.sqrt(
+                amount0 * amount1
+            ) - MINIMUM_LIQUIDITY;
 
-           _mint(
+            _mint(
                address(0x0),
                MINIMUM_LIQUIDITY
-             );
+            );
 
         } else {
+
             liquidity = Math.min(
                 amount0 * _totalSupply / _reserve0,
                 amount1 * _totalSupply / _reserve1
@@ -464,7 +456,6 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             _reserve1
         );
 
-        // if (feeOn) kLast = uint256(reserve0) * reserve1; // reserve0 and reserve1 are up-to-date
         kLast = uint256(reserve0) * reserve1;
 
         emit Mint(
@@ -474,9 +465,8 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         );
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
     function burn(
-        address to
+        address _to
     )
         external
         lock
@@ -497,13 +487,14 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
 
         _mintFee(
             _reserve0,
-            _reserve1
+            _reserve1,
+            kLast
         );
 
-        uint _totalSupply = totalSupply; // gas savings, must be defined here since totalSupply can update in _mintFee
+        uint256 _totalSupply = totalSupply;
 
-        amount0 = liquidity * balance0 / _totalSupply; // using balances ensures pro-rata distribution
-        amount1 = liquidity * balance1 / _totalSupply; // using balances ensures pro-rata distribution
+        amount0 = liquidity * balance0 / _totalSupply;
+        amount1 = liquidity * balance1 / _totalSupply;
 
         require(
             amount0 > 0 &&
@@ -518,13 +509,13 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
 
         _safeTransfer(
             _token0,
-            to,
+            _to,
             amount0
         );
 
         _safeTransfer(
             _token1,
-            to,
+            _to,
             amount1
         );
 
@@ -538,75 +529,83 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             _reserve1
         );
 
-        // if (feeOn) kLast = uint(reserve0) * reserve1; // reserve0 and reserve1 are up-to-date
-        kLast = uint256(reserve0) * reserve1; // reserve0 and reserve1 are up-to-date
+        kLast = uint256(reserve0) * reserve1;
 
         emit Burn(
             msg.sender,
             amount0,
             amount1,
-            to
+            _to
         );
     }
 
-    // this low-level function should be called from a contract which performs important safety checks
     function swap(
-        uint256 amount0Out,
-        uint256 amount1Out,
-        address to,
-        bytes calldata data
+        uint256 _amount0Out,
+        uint256 _amount1Out,
+        address _to,
+        bytes calldata _data
     )
         external
         lock
     {
         require(
-            amount0Out > 0 ||
-            amount1Out > 0,
+            _amount0Out > 0 ||
+            _amount1Out > 0,
             'INSUFFICIENT_OUTPUT_AMOUNT'
         );
 
         (uint112 _reserve0, uint112 _reserve1,) = getReserves();
 
         require(
-            amount0Out < _reserve0 &&
-            amount1Out < _reserve1,
+            _amount0Out < _reserve0 &&
+            _amount1Out < _reserve1,
             'INSUFFICIENT_LIQUIDITY'
         );
 
-        uint balance0;
-        uint balance1;
+        uint256 balance0;
+        uint256 balance1;
 
-        { // scope for _token{0,1}, avoids stack too deep errors
-        address _token0 = token0;
-        address _token1 = token1;
+        {
+            address _token0 = token0;
+            address _token1 = token1;
 
-        /* require(
-            to != _token0 &&
-            to != _token1,
-            'INVALID_TO'
-        );*/
+            if (_amount0Out > 0) _safeTransfer(_token0, _to, _amount0Out);
+            if (_amount1Out > 0) _safeTransfer(_token1, _to, _amount1Out);
 
-        if (amount0Out > 0) _safeTransfer(_token0, to, amount0Out); // optimistically transfer tokens
-        if (amount1Out > 0) _safeTransfer(_token1, to, amount1Out); // optimistically transfer tokens
-        if (data.length > 0) ISwapsCallee(to).swapsCall(msg.sender, amount0Out, amount1Out, data);
+            if (_data.length > 0) ISwapsCallee(_to).swapsCall(
+                msg.sender,
+                _amount0Out,
+                _amount1Out,
+                _data
+            );
 
-        balance0 = IERC20(_token0).balanceOf(address(this));
-        balance1 = IERC20(_token1).balanceOf(address(this));
-
+            balance0 = IERC20(_token0).balanceOf(address(this));
+            balance1 = IERC20(_token1).balanceOf(address(this));
         }
 
-        uint amount0In = balance0 > _reserve0 - amount0Out ? balance0 - (_reserve0 - amount0Out) : 0;
-        uint amount1In = balance1 > _reserve1 - amount1Out ? balance1 - (_reserve1 - amount1Out) : 0;
+        uint256 _amount0In = balance0 > _reserve0 - _amount0Out
+            ? balance0 - (_reserve0 - _amount0Out)
+            : 0;
+
+        uint256 _amount1In = balance1 > _reserve1 - _amount1Out
+            ? balance1 - (_reserve1 - _amount1Out)
+            : 0;
 
         require(
-            amount0In > 0 || amount1In > 0,
+            _amount0In > 0 || _amount1In > 0,
             'INSUFFICIENT_INPUT_AMOUNT'
         );
 
-        { // scope for reserve{0,1}Adjusted, avoids stack too deep errors
-        uint balance0Adjusted = balance0.mul(1000).sub(amount0In.mul(3));
-        uint balance1Adjusted = balance1.mul(1000).sub(amount1In.mul(3));
-        require(balance0Adjusted.mul(balance1Adjusted) >= uint(_reserve0).mul(_reserve1).mul(1000**2), 'K');
+        {
+            uint256 balance0Adjusted = balance0 * 1000 - (_amount0In * 3);
+            uint256 balance1Adjusted = balance1 * 1000 - (_amount1In * 3);
+
+            require(
+                balance0Adjusted * balance1Adjusted >=
+                uint256(_reserve0)
+                    * _reserve1
+                    * (1000**2)
+            );
         }
 
         _update(
@@ -618,38 +617,32 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
 
         emit Swap(
             msg.sender,
-            amount0In,
-            amount1In,
-            amount0Out,
-            amount1Out,
-            to
+            _amount0In,
+            _amount1In,
+            _amount0Out,
+            _amount1Out,
+            _to
         );
     }
 
-    // consider set own address only
-    function skim(
-        address to
-    )
+    function skim()
         external
         lock
     {
-        address _token0 = token0; // gas savings
-        address _token1 = token1; // gas savings
+        address _token0 = token0;
+        address _token1 = token1;
+        address _feesTo = ISwapsFactory(factory).feeTo();
 
-        _safeTransfer(_token0, to, IERC20(_token0).balanceOf(address(this)) - reserve0);
-        _safeTransfer(_token1, to, IERC20(_token1).balanceOf(address(this)) - reserve1);
-    }
+        _safeTransfer(
+            _token0,
+            _feesTo,
+            IERC20(_token0).balanceOf(address(this)) - reserve0
+        );
 
-    // consider removing
-    function sync()
-        external
-        lock
-    {
-        _update(
-            IERC20(token0).balanceOf(address(this)),
-            IERC20(token1).balanceOf(address(this)),
-            reserve0,
-            reserve1
+        _safeTransfer(
+            _token1,
+            _feesTo,
+            IERC20(_token1).balanceOf(address(this)) - reserve1
         );
     }
 }
@@ -674,6 +667,7 @@ contract SwapsFactory is ISwapsFactory {
         address _feeToSetter
     ) {
         feeToSetter = _feeToSetter;
+        feeTo = _feeToSetter;
     }
 
     function allPairsLength()

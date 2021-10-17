@@ -73,12 +73,7 @@ interface ISwapsPair is ISwapsERC20 {
     )
         external;
 
-    function skim(
-        address to
-    )
-        external;
-
-    function sync()
+    function skim()
         external;
 
     function initialize(

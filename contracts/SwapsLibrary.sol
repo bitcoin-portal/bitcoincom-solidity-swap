@@ -60,10 +60,10 @@ library SwapsLibrary {
                                 )
                             ),
                             // during coverage-test
-                            // hex'9fc727b315bdd0a3e63545f304923d47407b755e759330dd6bf284273e81e912'
+                            // hex'01ada0920ed343dcff2aa5c776daf53affb255ea2841b36cec8629f75f9b1c50'
 
                             // during regular-test
-                            hex'44c8a27daa914c8b4ee73592e46efb5871e5d5a01a152ad53f95406bcafc60c0'
+                            hex'34a38ffdad5e88b8e670d19a031204407a72a23edc334635c9c53a26774e3e72'
                         )
                     )
                 )
