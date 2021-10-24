@@ -2,6 +2,7 @@ const Token = artifacts.require("Token");
 const Weth = artifacts.require("WrappedEther");
 const Router = artifacts.require("SwapsRouter");
 const Factory = artifacts.require("SwapsFactory");
+const SwapsERC20 = artifacts.require("SwapsERC20")
 const ISwapsPair = artifacts.require("ISwapsPair");
 
 const catchRevert = require("./exceptionsHelpers.js").catchRevert;
@@ -39,6 +40,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     let token2;
     let factory;
     let router;
+    let erc20;
     // let launchTime;
 
     // beforeEach(async () => {
@@ -502,6 +504,295 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             assert.equal(
                 parseInt(tokenBalanceBefore) + parseInt(swapAmount),
                 parseInt(tokenBalanceAfter)
+            );
+        });
+    });
+
+    describe("Swaps ERC20", () => {
+
+        it("should have correct total supply", async () => {
+            const depositAmount = FIVE_TOKENS;
+
+            await token.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await token2.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await router.addLiquidity(
+                token.address,
+                token2.address,
+                depositAmount,
+                depositAmount,
+                1,
+                1,
+                owner,
+                170000000000,
+                {from: owner}
+            );
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                token2.address
+            );
+
+            pair = await SwapsERC20.at(pairAddress);
+            
+            const supply = await pair.totalSupply();
+            const ownerBalance = await pair.balanceOf(owner);
+            
+            assert.isAbove(parseInt(supply),
+                0);
+        });
+
+        it("should have correct name", async () => {
+            const name = await pair.name();
+
+            assert.equal(name,
+                "Bitcoin.com Swaps")
+        });
+
+        it("should have correct symbol", async () => {
+            const symbol = await pair.symbol();
+
+            assert.equal(symbol,
+                "BCOM-S")
+        });
+
+        it("should have correct decimals", async () => {
+            const decimals = await pair.decimals();
+
+            assert.equal(decimals,
+                18)
+        });
+
+        it("should return correct balance for account", async () => {
+            const expectedAmount = ONE_TOKEN;
+
+            await pair.transfer(
+                bob,
+                expectedAmount,
+                {
+                    from: owner
+                }
+            );
+
+            const balance = await pair.balanceOf(bob);
+
+            assert.equal(parseInt(balance), 
+                parseInt(expectedAmount));
+        });
+
+        it("should give the correct allowance for the given spender", async () => {
+            const allowance = await pair.allowance(owner, bob);
+
+            assert.equal(allowance,
+                0);
+        });
+
+        it("should return correct PERMIT_TYPEHASH", async () => {
+            const hash = await pair.PERMIT_TYPEHASH();
+
+            assert.equal(hash,
+                "0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9");
+        });
+
+        it("on approve should emit correct Approval event", async () => {
+            const transferValue = ONE_TOKEN;
+
+            await pair.approve(
+                bob,
+                transferValue,
+                {
+                    from: owner
+                }
+            );
+
+            const { owner: transferOwner, spender, value } = await getLastEvent(
+                "Approval",
+                pair
+            );
+
+            assert.equal(
+                transferOwner,
+                owner
+            );
+
+            assert.equal(
+                spender,
+                bob
+            );
+
+            assert.equal(
+                transferValue,
+                value
+            );
+        });
+
+        it("on transfer should emit correct Transfer event", async () => {
+            const transferValue = ONE_TOKEN;
+            const expectedRecepient = bob;
+
+            await pair.transfer(
+                expectedRecepient,
+                transferValue,
+                {
+                    from: owner
+                }
+            );
+
+            const { from, to, value } = await getLastEvent(
+                "Transfer",
+                pair
+            );
+
+            assert.equal(
+                from,
+                owner
+            );
+
+            assert.equal(
+                to,
+                expectedRecepient
+            );
+
+            assert.equal(
+                value,
+                transferValue
+            );
+        });
+
+        it("should transfer correct amount from walletA to walletB", async () => {
+
+            const transferValue = ONE_TOKEN;
+            const balanceBefore = await　pair.balanceOf(bob);
+            const ownerBalanceBefore = await pair.balanceOf(owner);
+
+            await pair.transfer(
+                bob,
+                transferValue,
+                {
+                    from: owner
+                }
+            );
+
+            const balanceAfter = await pair.balanceOf(bob);
+            const ownerBalanceAfter = await pair.balanceOf(owner);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) + parseInt(transferValue)
+            );
+            assert.equal(
+                parseInt(ownerBalanceAfter),
+                parseInt(ownerBalanceBefore) - parseInt(transferValue)
+            );
+        });
+
+        it("should revert if not enough balance in the wallet", async () => {
+            await catchRevert(
+                pair.transfer(
+                    bob,
+                    ONE_TOKEN,
+                    {
+                        from: alice
+                    }
+                )
+            );
+        });
+
+        it("should increase allowance of wallet", async () => {
+
+            const approvalValue = ONE_TOKEN;
+
+            await pair.approve(
+                bob,
+                approvalValue,
+                {
+                    from: owner
+                }
+            );
+
+            const allowanceValue = await pair.allowance(
+                owner,
+                bob
+            );
+
+            assert.equal(
+                approvalValue,
+                allowanceValue
+            );
+        });
+        
+        //this test fails. Consistently deducts 700 less than it seems it should. Issue with contract?
+        it("transferFrom should deduct correct amount from sender", async () => {
+            const transferValue = ONE_TOKEN;
+            const expectedRecipient = bob;
+            
+
+            await pair.approve(
+                owner,
+                transferValue
+            );
+
+            const balanceBefore = await pair.balanceOf(owner);
+
+            await pair.transferFrom(
+                owner,
+                expectedRecipient,
+                transferValue,
+            );
+
+            const balanceAfter = await pair.balanceOf(owner);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) - parseInt(transferValue)
+            );
+        });
+
+        it("transferFrom should add correct amount to reciever", async () => {
+            const transferValue = ONE_TOKEN;
+            const expectedRecipient = alice;
+            const balanceBefore = await pair.balanceOf(alice);
+
+            await pair.approve(
+                owner,
+                transferValue
+            );
+
+            await pair.transferFrom(
+                owner,
+                expectedRecipient,
+                transferValue,
+            );
+
+            const balanceAfter = await pair.balanceOf(alice);
+
+            assert.equal(
+                parseInt(balanceAfter),
+                parseInt(balanceBefore) + parseInt(transferValue)
+            );
+        });
+
+        it("should revert if there is no approval when using transferFrom", async () => {
+            const transferValue = ONE_TOKEN;
+            const expectedRecipient = bob;
+
+            await catchRevert(
+                pair.transferFrom(
+                    owner,
+                    expectedRecipient,
+                    transferValue
+                ),
+                "revert REQUIRES APPROVAL"
             );
         });
     });
