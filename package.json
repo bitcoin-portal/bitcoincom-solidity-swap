@@ -12,21 +12,21 @@
 	"scripts": {
 		"chain": "ganache-cli --defaultBalanceEther 10000000 -i 5777 -p 9545 -l 12500000 -m \"urban prevent meadow draft involve security curtain robot brick question try scatter\"",
 		"compile": "truffle compile",
-        "test-token": "npx truffle test test/token.test.js",
-        "test-swaps": "npx truffle test test/swaps.test.js",
-        "test-wraps": "npx truffle test test/wraps.test.js",
+		"test-token": "npx truffle test test/token.test.js",
+		"test-swaps": "npx truffle test test/swaps.test.js",
+		"test-wraps": "npx truffle test test/wraps.test.js",
 		"test-coverage": "npx truffle run coverage --network development --testfiles \"test/swaps.test.js\"",
-        "flat-file": "cd contracts && truffle-flattener fileName.sol > ../flats/fileName.sol",
+		"flat-file": "cd contracts && truffle-flattener fileName.sol > ../flats/fileName.sol",
 		"docs": "oz-docs",
 		"lint:sol:fix": "prettier --write \"contracts/**/*.sol\"",
 		"prepublish": "rimraf build contracts/build artifacts cache",
 		"prepare": "env COMPILE_MODE=production truffle compile",
-        "migrate-weth": "cd weth && truffle migrate",
-        "migrate-uniswap-factory": "node deploy-factory.js",
-        "migrate-uniswap-router": "cd uniswap && truffle migrate",
-        "migrate-main": "truffle migrate",
-        "migrate-all": "npm run migrate-weth && npm run migrate-uniswap-factory && npm run migrate-uniswap-router && npm run migrate-main",
-        "bridge": "ethereum-bridge -H localhost:9545 -a 1 --dev"
+		"migrate-weth": "cd weth && truffle migrate",
+		"migrate-uniswap-factory": "node deploy-factory.js",
+		"migrate-uniswap-router": "cd uniswap && truffle migrate",
+		"migrate-main": "truffle migrate",
+		"migrate-all": "npm run migrate-weth && npm run migrate-uniswap-factory && npm run migrate-uniswap-router && npm run migrate-main",
+		"bridge": "ethereum-bridge -H localhost:9545 -a 1 --dev"
 	},
 	"keywords": [
 		"solidity",
@@ -40,6 +40,8 @@
 		"url": "https://github.com/bitcoin-portal/bitcoincom-solidity-swap"
 	},
 	"devDependencies": {
+		"@ethersproject/abi": "^5.5.0",
+		"@ethersproject/solidity": "^5.5.0",
 		"chai": "^4.2.0",
 		"eslint": "^6.5.1",
 		"eslint-config-standard": "^14.1.1",
@@ -51,6 +53,7 @@
 		"eth-sig-util": "^3.0.0",
 		"ethereumjs-util": "^7.0.7",
 		"ethereumjs-wallet": "^1.0.1",
+		"ethers": "^5.5.1",
 		"ganache-time-traveler": "^1.0.16",
 		"graphlib": "^2.1.8",
 		"hardhat-gas-reporter": "^1.0.4",
