@@ -79,16 +79,6 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 expectedValue
             );
         });
-
-        // pair contract
-        it.skip("should have correct PERMIT_TYPEHASH value", async () => {
-            const permitHash = await factory.PERMIT_TYPEHASH();
-            const expectedValue = '0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9';
-            assert.equal(
-                permitHash,
-                expectedValue
-            );
-        });
     });
 
     describe("Router Pairs", () => {
@@ -544,33 +534,41 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
 
             pair = await SwapsERC20.at(pairAddress);
-            
+
             const supply = await pair.totalSupply();
             const ownerBalance = await pair.balanceOf(owner);
-            
-            assert.isAbove(parseInt(supply),
-                0);
+
+            assert.isAbove(
+                parseInt(supply),
+                0
+            );
         });
 
         it("should have correct name", async () => {
             const name = await pair.name();
 
-            assert.equal(name,
-                "Bitcoin.com Swaps")
+            assert.equal(
+                name,
+                "Bitcoin.com Swaps"
+            );
         });
 
         it("should have correct symbol", async () => {
             const symbol = await pair.symbol();
 
-            assert.equal(symbol,
-                "BCOM-S")
+            assert.equal(
+                symbol,
+                "BCOM-S"
+            );
         });
 
         it("should have correct decimals", async () => {
             const decimals = await pair.decimals();
 
-            assert.equal(decimals,
-                18)
+            assert.equal(
+                decimals,
+                18
+            );
         });
 
         it("should return correct balance for account", async () => {
@@ -586,22 +584,30 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             const balance = await pair.balanceOf(bob);
 
-            assert.equal(parseInt(balance), 
-                parseInt(expectedAmount));
+            assert.equal(
+                parseInt(balance),
+                parseInt(expectedAmount)
+            );
         });
 
         it("should give the correct allowance for the given spender", async () => {
             const allowance = await pair.allowance(owner, bob);
 
-            assert.equal(allowance,
-                0);
+            assert.equal(
+                allowance,
+                0
+            );
         });
 
         it("should return correct PERMIT_TYPEHASH", async () => {
-            const hash = await pair.PERMIT_TYPEHASH();
-
-            assert.equal(hash,
-                "0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9");
+            const expectedHash = web3.utils.keccak256(
+                "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+            );
+            const hashInContract = await pair.PERMIT_TYPEHASH();
+            assert.equal(
+                hashInContract,
+                expectedHash
+            );
         });
 
         it("on approve should emit correct Approval event", async () => {
@@ -730,12 +736,11 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 allowanceValue
             );
         });
-        
-        //this test fails. Consistently deducts 700 less than it seems it should. Issue with contract?
+
         it("transferFrom should deduct correct amount from sender", async () => {
+
             const transferValue = ONE_TOKEN;
             const expectedRecipient = bob;
-            
 
             await pair.approve(
                 owner,
@@ -753,8 +758,8 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             const balanceAfter = await pair.balanceOf(owner);
 
             assert.equal(
-                parseInt(balanceAfter),
-                parseInt(balanceBefore) - parseInt(transferValue)
+                (new BN(balanceAfter)).toString(),
+                (new BN(balanceBefore).sub(new BN(transferValue))).toString()
             );
         });
 
