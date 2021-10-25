@@ -115,7 +115,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     // let firstAccount = accounts[0];
     // console.log(firstAccount, 'firstAccount');
     // console.log(firstAccount.secretKey, 'firstAccount.secretKey');
-    console.log(owner.secretKey, 'owner');
+    // console.log(owner.secretKey, 'owner');
 
     let weth;
     let token;
@@ -628,7 +628,45 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it("should be able to perform a swap (ERC20 > ETH)", async () => {
+        it("should be able to perform swapExactETHForTokensSupportingFeeOnTransferTokens", async () => {
+
+            const depositAmount = FIVE_ETH;
+            const swapAmount = FOUR_ETH;
+
+            const path = [
+                weth.address,
+                token.address
+            ];
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            wethBalanceBefore = await weth.balanceOf(pairAddress);
+
+            await router.swapExactETHForTokensSupportingFeeOnTransferTokens(
+                0,
+                path,
+                owner,
+                1700000000000,
+                {
+                    from: owner,
+                    gasLimit: 10000000000,
+                    value: swapAmount
+                }
+            );
+
+            wethBalanceAfter = await weth.balanceOf(pairAddress);
+
+            assert.equal(
+                parseInt(wethBalanceBefore) + parseInt(swapAmount),
+                parseInt(wethBalanceAfter)
+            );
+        });
+
+        it("should be able to perform a swap (exact ERC20 > ETH)", async () => {
 
             const depositAmount = FIVE_ETH;
             const swapAmount = FOUR_ETH;
@@ -689,6 +727,158 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
+        it("should be able to perform swapExactTokensForETHSupportingFeeOnTransferTokens)", async () => {
+
+            const depositAmount = FIVE_ETH;
+            const swapAmount = FOUR_ETH;
+
+            const path = [
+                token.address,
+                weth.address
+            ];
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            tokenBalanceBefore = await token.balanceOf(
+                pairAddress
+            );
+
+            await router.swapExactTokensForETHSupportingFeeOnTransferTokens(
+                swapAmount,
+                0,
+                path,
+                owner,
+                1700000000000,
+                {
+                    from: owner,
+                    gasLimit: 10000000000
+                }
+            );
+
+            tokenBalanceAfter = await token.balanceOf(
+                pairAddress
+            );
+
+            assert.equal(
+                parseInt(tokenBalanceBefore) + parseInt(swapAmount),
+                parseInt(tokenBalanceAfter)
+            );
+        });
+
+        it("should be able to perform a swap (ERC20 > ETH exact)", async () => {
+
+            const depositAmount = FIVE_ETH;
+            const swapAmount = FOUR_ETH;
+
+            await token.approve(
+                router.address,
+                APPROVE_VALUE,
+                {from: owner}
+            );
+
+            await router.addLiquidityETH(
+                token.address,
+                STATIC_SUPPLY,
+                0,
+                0,
+                owner,
+                170000000000,
+                {
+                    from: owner,
+                    value: depositAmount
+                }
+            );
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            const path = [
+                token.address,
+                weth.address
+            ];
+
+            await catchRevert(
+                router.swapTokensForExactETH(
+                    ONE_ETH,
+                    FOUR_ETH,
+                    path,
+                    owner,
+                    1700000000000,
+                    {
+                        from: owner,
+                        gasLimit: 10000000000
+                    }
+                ),
+                'revert EXCESSIVE_INPUT_AMOUNT'
+            );
+
+            await router.swapTokensForExactETH(
+                100000000,
+                NINE_ETH,
+                path,
+                owner,
+                1700000000000,
+                {
+                    from: owner,
+                    gasLimit: 10000000000
+                }
+            );
+
+            tokenBalanceBefore = await token.balanceOf(
+                pairAddress
+            );
+
+            const swapAmountTokens = ONE_TOKEN;
+
+            await catchRevert(
+                router.swapETHForExactTokens(
+                    swapAmountTokens,
+                    path,
+                    owner,
+                    1700000000000,
+                    {
+                        value: FOUR_ETH,
+                        from: owner,
+                        gasLimit: 10000000000
+                    }
+                ),
+                'revert INVALID_PATH'
+            );
+
+            const correctPath = [
+                weth.address,
+                token.address
+            ];
+
+            await router.swapETHForExactTokens(
+                swapAmountTokens,
+                correctPath,
+                owner,
+                1700000000000,
+                {
+                    value: FOUR_ETH,
+                    from: owner,
+                    gasLimit: 10000000000
+                }
+            ),
+
+            tokenBalanceAfter = await token.balanceOf(
+                pairAddress
+            );
+
+            assert.equal(
+                parseInt(tokenBalanceBefore),
+                parseInt(tokenBalanceAfter) + parseInt(swapAmountTokens)
+            );
+        });
+
         it("should be able to perform a swap (ERC20 > ERC20)", async () => {
 
             const depositAmount = FOUR_TOKENS;
@@ -736,6 +926,31 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             ];
 
             await router.swapExactTokensForTokens(
+                swapAmount,
+                0,
+                path,
+                owner,
+                1700000000000,
+                {
+                    from: owner,
+                    gasLimit: 10000000000
+                }
+            );
+
+            tokenBalanceAfter = await token.balanceOf(
+                pairAddress
+            );
+
+            assert.equal(
+                parseInt(tokenBalanceBefore) + parseInt(swapAmount),
+                parseInt(tokenBalanceAfter)
+            );
+
+            tokenBalanceBefore = await token.balanceOf(
+                pairAddress
+            );
+
+            await router.swapExactTokensForTokensSupportingFeeOnTransferTokens(
                 swapAmount,
                 0,
                 path,
@@ -822,6 +1037,21 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             assert.equal(
                 parseInt(tokenBalanceBefore),
                 parseInt(tokenBalanceAfter) + parseInt(swapAmount)
+            );
+
+            await catchRevert(
+                router.swapTokensForExactTokens(
+                    swapAmount,
+                    depositAmount,
+                    path,
+                    owner,
+                    0,
+                    {
+                        from: owner,
+                        gasLimit: 10000000000
+                    }
+                ),
+                'revert SwapsRouter: DEADLINE_EXPIRED'
             );
         });
 
