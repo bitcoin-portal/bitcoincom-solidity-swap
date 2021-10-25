@@ -1,3 +1,5 @@
+// import { defaultAbiCoder } from "@ethersproject/abi";
+
 const Token = artifacts.require("Token");
 const Weth = artifacts.require("WrappedEther");
 const Router = artifacts.require("SwapsRouter");
@@ -5,9 +7,23 @@ const Factory = artifacts.require("SwapsFactory");
 const SwapsPair = artifacts.require("SwapsPair")
 const ISwapsPair = artifacts.require("ISwapsPair");
 
+
+const ethUtil = require('ethereumjs-util');
+const { defaultAbiCoder } = require('@ethersproject/abi');
+const { solidityPack } = require('@ethersproject/solidity');
 const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 
+// const defaultAbiCoder = require("ethers/lib/utils").defaultAbiCoder;
+// const solidityPack = require("ethers/utils").solidityPack;
+
+// console.log(ethUtil, 'ethUtil');
+// console.log(ethUtil.zeroAddress, 'ethUtil');
+// console.log(ethUtil.isZeroAddress, 'ethUtil');
+// console.log(ethUtil.generateAddress, 'ethUtil');
+
 require("./utils");
+
+// const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
 
 const BN = web3.utils.BN;
 const APPROVE_VALUE = web3.utils.toWei("1000000");
@@ -26,6 +42,52 @@ const NINE_ETH = web3.utils.toWei("9");
 const STATIC_SUPPLY = web3.utils.toWei("500");
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
+const getPermitDigest = async (
+    token,
+    approve,
+    nonce,
+    deadline,
+) => {
+    const DOMAIN_SEPARATOR = await token.DOMAIN_SEPARATOR();
+    const PERMIT_TYPEHASH = await token.PERMIT_TYPEHASH();
+
+    return web3.utils.keccak256(
+        solidityPack(
+            [
+                "bytes1",
+                "bytes1",
+                "bytes32",
+                "bytes32"
+            ],
+            [
+                "0x19",
+                "0x01",
+                DOMAIN_SEPARATOR,
+                web3.utils.keccak256(
+                    defaultAbiCoder.encode(
+                        [
+                            "bytes32",
+                            "address",
+                            "address",
+                            "uint256",
+                            "uint256",
+                            "uint256"
+                        ],
+                        [
+                            PERMIT_TYPEHASH,
+                            approve.owner,
+                            approve.spender,
+                            approve.amount,
+                            nonce,
+                            deadline
+                        ],
+                    ),
+                ),
+            ],
+        ),
+    );
+}
+
 const getLastEvent = async (eventName, instance) => {
     const events = await instance.getPastEvents(eventName, {
         fromBlock: 0,
@@ -34,7 +96,26 @@ const getLastEvent = async (eventName, instance) => {
     return events.pop().returnValues;
 };
 
+const sign = (digest, privateKey) => {
+    return ethUtil.ecsign(Buffer.from(digest.slice(2), 'hex'), privateKey);
+}
+
+const toHex = (str) => {
+
+    var hex = ''
+    for (var i = 0; i < str.length; i++) {
+        hex += '' + str.charCodeAt(i).toString(16)
+    }
+    return hex;
+}
+
+
 contract("Swaps", ([owner, alice, bob, random]) => {
+
+    // let firstAccount = accounts[0];
+    // console.log(firstAccount, 'firstAccount');
+    // console.log(firstAccount.secretKey, 'firstAccount.secretKey');
+    console.log(owner.secretKey, 'owner');
 
     let weth;
     let token;
@@ -771,6 +852,228 @@ contract("Swaps", ([owner, alice, bob, random]) => {
     });
 
     describe("Swaps Pair", () => {
+
+        it("revert if invalid permit()", async function () {
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            pair = await SwapsPair.at(
+                pairAddress
+            );
+
+            const approve = {
+                owner: owner,
+                spender: bob,
+                value: 100,
+            }
+
+            // deadline as much as you want in the future
+            const deadline = 100000000000000;
+            const nonce = await pair.nonces(owner);
+
+            const r = '0x7465737400000000000000000000000000000000000000000000000000000000';
+            const s = '0x7465737400000000000000000000000000000000000000000000000000000000';
+
+            await catchRevert(
+                pair.permit(
+                    '0x0000000000000000000000000000000000000000',
+                    approve.spender,
+                    approve.value,
+                    deadline,
+                    '0x99',
+                    r,
+                    s
+                ),
+                'ERC20Permit: invalid signature'
+            );
+        });
+        it("revert if invalid deadline", async function () {
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            pair = await SwapsPair.at(
+                pairAddress
+            );
+
+            const approve = {
+                owner: owner,
+                spender: bob,
+                value: 100,
+            }
+
+            // deadline as much as you want in the future
+            const deadline = 0;
+            const nonce = await pair.nonces(owner);
+
+            const r = '0x7465737400000000000000000000000000000000000000000000000000000000';
+            const s = '0x7465737400000000000000000000000000000000000000000000000000000000';
+
+            await catchRevert(
+                pair.permit(
+                    '0x0000000000000000000000000000000000000000',
+                    approve.spender,
+                    approve.value,
+                    deadline,
+                    '0x99',
+                    r,
+                    s
+                ),
+                'revert PERMIT_CALL_EXPIRED'
+            );
+        });
+
+        it.skip("revert if invalid permit()", async function () {
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            pair = await SwapsPair.at(
+                pairAddress
+            );
+
+            const approve = {
+                owner: owner,
+                spender: bob,
+                value: 100,
+            }
+
+            // deadline as much as you want in the future
+            const deadline = 100000000000000;
+
+            // Get the user's nonce
+            const name = await pair.name();
+            const nonce = await pair.nonces(owner);
+
+
+            // Get the EIP712 digest
+            const digest = await getPermitDigest(
+                pair,
+                approve,
+                nonce,
+                deadline
+            );
+
+            const ownerPrivateKey = 'b25421d6dabd6e9119c45c4daf4ca4f8f86bd6761cc20c095906073da7c02471';
+
+            const { v, r, s } = sign(
+                digest,
+                ownerPrivateKey
+            );
+
+            await catchRevert(
+                pair.permit(
+                    '0x0000000000000000000000000000000000000000',
+                    approve.spender,
+                    approve.value,
+                    deadline,
+                    '0x99',
+                    r,
+                    s
+                ),
+                'ERC20Permit: invalid signature'
+            );
+        });
+
+        it.skip("allows the spender claim the allowance signed by the owner", async function () {
+
+            const pairAddress = await router.pairFor(
+                factory.address,
+                token.address,
+                weth.address
+            );
+
+            pair = await SwapsPair.at(
+                pairAddress
+            );
+
+            const approve = {
+                owner: owner,
+                spender: bob,
+                value: 100,
+            }
+
+            // deadline as much as you want in the future
+            const deadline = 100000000000000;
+
+            // Get the user's nonce
+            const name = await pair.name();
+            const nonce = await pair.nonces(owner);
+
+            // Get the EIP712 digest
+            const digest = getPermitDigest(
+                pair,
+                approve,
+                nonce,
+                deadline
+            );
+
+            // Sign it
+            // NOTE: Using web3.eth.sign will hash the message internally again which
+            // we do not want, so we're manually signing here
+
+            const ownerPrivateKey = 'b25421d6dabd6e9119c45c4daf4ca4f8f86bd6761cc20c095906073da7c02471';
+
+            const { v, r, s } = sign(
+                digest,
+                ownerPrivateKey
+            );
+
+            // Approve it
+            const receipt = await pair.permit(
+                approve.owner,
+                approve.spender,
+                approve.value,
+                deadline,
+                v,
+                r,
+                s
+            );
+
+            const event = receipt.logs[0]
+
+            // It worked!
+            assert.equal(
+                event.event,
+                'Approval'
+            );
+
+            assert.equal(
+                await token.nonces(owner),
+                1
+            );
+
+            assert.equal(
+                await token.allowance(approve.owner, approve.spender),
+                approve.value
+            );
+
+            // Re-using the same sig doesn't work since the nonce has been incremented
+            // on the contract level for replay-protection
+
+            await catchRevert(
+                token.permit(
+                    approve.owner,
+                    approve.spender,
+                    approve.value,
+                    deadline,
+                    v,
+                    r,
+                    s
+                ),
+                'ERC20Permit: invalid signature'
+            );
+        });
 
         it("should allow to perform skim() operation retrieve stuck tokens", async () => {
 
