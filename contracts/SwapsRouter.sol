@@ -1073,7 +1073,6 @@ contract SwapsRouter {
         );
     }
 
-
     function _pairFor(
         address _factory,
         address _tokenA,
@@ -1081,7 +1080,7 @@ contract SwapsRouter {
         address _implementation
     )
         internal
-        view
+        pure
         returns (address predicted)
     {
         (address token0, address token1) = _tokenA < _tokenB
