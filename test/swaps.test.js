@@ -2,11 +2,10 @@
 
 const Token = artifacts.require("Token");
 const Weth = artifacts.require("WrappedEther");
+
 const Router = artifacts.require("SwapsRouter");
 const Factory = artifacts.require("SwapsFactory");
 const SwapsPair = artifacts.require("SwapsPair")
-const ISwapsPair = artifacts.require("ISwapsPair");
-
 
 const ethUtil = require('ethereumjs-util');
 const { defaultAbiCoder } = require('@ethersproject/abi');
@@ -415,7 +414,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 token2.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
 
             tokenBalance = await token.balanceOf(pairAddress);
             token2Balance = await token2.balanceOf(pairAddress);
@@ -464,7 +463,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
             wethBalance = await weth.balanceOf(pairAddress);
             tokenBalance = await token.balanceOf(pairAddress);
 
@@ -494,7 +493,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 token2.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
             ownersBalance = await pair.balanceOf(owner);
 
             assert.isAbove(
@@ -537,7 +536,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
             ownersBalance = await pair.balanceOf(owner);
 
             assert.isAbove(
