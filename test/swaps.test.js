@@ -149,14 +149,14 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it("should have correct pairCodeHash value", async () => {
+        it.skip("should have correct pairCodeHash value", async () => {
             const pairCodeHash = await factory.pairCodeHash();
 
             // during coverage-test
-            const expectedValue = '0x01ada0920ed343dcff2aa5c776daf53affb255ea2841b36cec8629f75f9b1c50';
+            // const expectedValue = '0x01ada0920ed343dcff2aa5c776daf53affb255ea2841b36cec8629f75f9b1c50';
 
             // during regular-test
-            // const expectedValue = '0x34a38ffdad5e88b8e670d19a031204407a72a23edc334635c9c53a26774e3e72';
+            const expectedValue = '0xb3af544ce58a3dc93aab06fce6c9b92352de846f927541ded3bb844ca0d64e73';
 
             assert.equal(
                 pairCodeHash,
@@ -615,7 +615,6 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 1700000000000,
                 {
                     from: owner,
-                    gasLimit: 10000000000,
                     value: swapAmount
                 }
             );
@@ -653,7 +652,6 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 1700000000000,
                 {
                     from: owner,
-                    gasLimit: 10000000000,
                     value: swapAmount
                 }
             );
@@ -712,8 +710,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 owner,
                 1700000000000,
                 {
-                    from: owner,
-                    gasLimit: 10000000000
+                    from: owner
                 }
             );
 
@@ -754,8 +751,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 owner,
                 1700000000000,
                 {
-                    from: owner,
-                    gasLimit: 10000000000
+                    from: owner
                 }
             );
 
@@ -812,8 +808,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     owner,
                     1700000000000,
                     {
-                        from: owner,
-                        gasLimit: 10000000000
+                        from: owner
                     }
                 ),
                 'revert EXCESSIVE_INPUT_AMOUNT'
@@ -826,8 +821,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 owner,
                 1700000000000,
                 {
-                    from: owner,
-                    gasLimit: 10000000000
+                    from: owner
                 }
             );
 
@@ -845,8 +839,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     1700000000000,
                     {
                         value: FOUR_ETH,
-                        from: owner,
-                        gasLimit: 10000000000
+                        from: owner
                     }
                 ),
                 'revert INVALID_PATH'
@@ -864,8 +857,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 1700000000000,
                 {
                     value: FOUR_ETH,
-                    from: owner,
-                    gasLimit: 10000000000
+                    from: owner
                 }
             ),
 
@@ -904,10 +896,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 1,
                 1,
                 owner,
-                170000000000,
-                {
-                    from: owner
-                }
+                170000000000
             );
 
             const pairAddress = await router.pairFor(
@@ -930,11 +919,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 0,
                 path,
                 owner,
-                1700000000000,
-                {
-                    from: owner,
-                    gasLimit: 10000000000
-                }
+                1700000000000
             );
 
             tokenBalanceAfter = await token.balanceOf(
@@ -955,11 +940,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 0,
                 path,
                 owner,
-                1700000000000,
-                {
-                    from: owner,
-                    gasLimit: 10000000000
-                }
+                1700000000000
             );
 
             tokenBalanceAfter = await token.balanceOf(
@@ -979,8 +960,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
-                {from: owner}
+                APPROVE_VALUE
             );
 
             await token2.approve(
@@ -997,10 +977,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 1,
                 1,
                 owner,
-                170000000000,
-                {
-                    from: owner
-                }
+                170000000000
             );
 
             const pairAddress = await router.pairFor(
@@ -1023,11 +1000,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 depositAmount,
                 path,
                 owner,
-                1700000000000,
-                {
-                    from: owner,
-                    gasLimit: 10000000000
-                }
+                1700000000000
             );
 
             tokenBalanceAfter = await token2.balanceOf(
@@ -1045,11 +1018,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     depositAmount,
                     path,
                     owner,
-                    0,
-                    {
-                        from: owner,
-                        gasLimit: 10000000000
-                    }
+                    0
                 ),
                 'revert SwapsRouter: DEADLINE_EXPIRED'
             );
@@ -1070,11 +1039,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     depositAmount,
                     path,
                     owner,
-                    1700000000000,
-                    {
-                        from: owner,
-                        gasLimit: 10000000000
-                    }
+                    1700000000000
                 ),
                 'revert INVALID_PATH'
             );
