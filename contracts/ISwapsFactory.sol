@@ -48,4 +48,9 @@ interface ISwapsFactory {
         address
     )
         external;
+
+    function cloneTarget()
+        external
+        view
+        returns (address target);
 }
