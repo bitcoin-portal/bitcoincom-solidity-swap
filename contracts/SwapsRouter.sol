@@ -5,15 +5,14 @@ pragma solidity ^0.8.9;
 import "./IWETH.sol";
 import "./IERC20.sol";
 import "./ISwapsFactory.sol";
-import "./ISwapsRouter.sol";
-
-import "./SwapsLibrary.sol";
+import "./ISwapsPair.sol";
 import "./TransferHelper.sol";
 
-contract SwapsRouter is ISwapsRouter {
+contract SwapsRouter {
 
     address public immutable FACTORY;
     address public immutable WETH;
+    address public immutable PAIR;
 
     modifier ensure(
         uint256 _deadline
@@ -31,6 +30,7 @@ contract SwapsRouter is ISwapsRouter {
     ) {
         FACTORY = _factory;
         WETH = _WETH;
+        PAIR = ISwapsFactory(_factory).cloneTarget();
     }
 
     receive()
@@ -58,7 +58,7 @@ contract SwapsRouter is ISwapsRouter {
             ISwapsFactory(FACTORY).createPair(_tokenA, _tokenB);
         }
 
-        (uint256 reserveA, uint256 reserveB) = SwapsLibrary.getReserves(
+        (uint256 reserveA, uint256 reserveB) = getReserves(
             FACTORY,
             _tokenA,
             _tokenB
@@ -71,7 +71,7 @@ contract SwapsRouter is ISwapsRouter {
             );
         }
 
-        uint256 amountBOptimal = SwapsLibrary.quote(
+        uint256 amountBOptimal = quote(
             _amountADesired,
             reserveA,
             reserveB
@@ -89,7 +89,7 @@ contract SwapsRouter is ISwapsRouter {
             );
         }
 
-        uint256 amountAOptimal = SwapsLibrary.quote(
+        uint256 amountAOptimal = quote(
             _amountBDesired,
             reserveB,
             reserveA
@@ -137,10 +137,11 @@ contract SwapsRouter is ISwapsRouter {
             _amountBMin
         );
 
-        address pair = pairFor(
+        address pair = _pairFor(
             FACTORY,
             _tokenA,
-            _tokenB
+            _tokenB,
+            PAIR
         );
 
         _safeTransferFrom(
@@ -186,10 +187,11 @@ contract SwapsRouter is ISwapsRouter {
             _amountETHMin
         );
 
-        address pair = pairFor(
+        address pair = _pairFor(
             FACTORY,
             _token,
-            WETH
+            WETH,
+            PAIR
         );
 
         _safeTransferFrom(
@@ -238,10 +240,11 @@ contract SwapsRouter is ISwapsRouter {
             uint256 amountB
         )
     {
-        address pair = pairFor(
+        address pair = _pairFor(
             FACTORY,
             _tokenA,
-            _tokenB
+            _tokenB,
+            PAIR
         );
 
         ISwapsPair(pair).transferFrom(
@@ -252,7 +255,7 @@ contract SwapsRouter is ISwapsRouter {
 
         (uint amount0, uint amount1) = ISwapsPair(pair).burn(_to);
 
-        (address token0,) = SwapsLibrary.sortTokens(
+        (address token0,) = sortTokens(
             _tokenA,
             _tokenB
         );
@@ -329,10 +332,11 @@ contract SwapsRouter is ISwapsRouter {
         external
         returns (uint256, uint256)
     {
-        address pair = pairFor(
+        address pair = _pairFor(
             FACTORY,
             _tokenA,
-            _tokenB
+            _tokenB,
+            PAIR
         );
 
         uint value = _approveMax
@@ -375,10 +379,11 @@ contract SwapsRouter is ISwapsRouter {
         external
         returns (uint256, uint256)
     {
-        address pair = pairFor(
+        address pair = _pairFor(
             FACTORY,
             token,
-            WETH
+            WETH,
+            PAIR
         );
 
         uint value = approveMax
@@ -460,10 +465,11 @@ contract SwapsRouter is ISwapsRouter {
         external
         returns (uint256 amountETH)
     {
-        address pair = pairFor(
+        address pair = _pairFor(
             FACTORY,
             token,
-            WETH
+            WETH,
+            PAIR
         );
 
         uint value = approveMax
@@ -504,7 +510,7 @@ contract SwapsRouter is ISwapsRouter {
                 _path[i + 1]
             );
 
-            (address token0,) = SwapsLibrary.sortTokens(
+            (address token0,) = sortTokens(
                 input,
                 output
             );
@@ -516,14 +522,15 @@ contract SwapsRouter is ISwapsRouter {
                 : (amountOut, uint(0));
 
             address to = i < _path.length - 2
-                ? pairFor(FACTORY, output, _path[i + 2])
+                ? _pairFor(FACTORY, output, _path[i + 2], PAIR)
                 : _to;
 
             ISwapsPair(
-                pairFor(
+                _pairFor(
                     FACTORY,
                     input,
-                    output
+                    output,
+                    PAIR
                 )
             ).swap(
                 amount0Out,
@@ -545,7 +552,7 @@ contract SwapsRouter is ISwapsRouter {
         ensure(deadline)
         returns (uint256[] memory amounts)
     {
-        amounts = SwapsLibrary.getAmountsOut(
+        amounts = getAmountsOut(
             FACTORY,
             amountIn,
             path
@@ -559,10 +566,11 @@ contract SwapsRouter is ISwapsRouter {
         _safeTransferFrom(
             path[0],
             msg.sender,
-            pairFor(
+            _pairFor(
                 FACTORY,
                 path[0],
-                path[1]
+                path[1],
+                PAIR
             ),
             amounts[0]
         );
@@ -585,7 +593,7 @@ contract SwapsRouter is ISwapsRouter {
         ensure(deadline)
         returns (uint256[] memory amounts)
     {
-        amounts = SwapsLibrary.getAmountsIn(
+        amounts = getAmountsIn(
             FACTORY,
             amountOut,
             path
@@ -599,10 +607,11 @@ contract SwapsRouter is ISwapsRouter {
         _safeTransferFrom(
             path[0],
             msg.sender,
-            pairFor(
+            _pairFor(
                 FACTORY,
                 path[0],
-                path[1]
+                path[1],
+                PAIR
             ),
             amounts[0]
         );
@@ -630,7 +639,7 @@ contract SwapsRouter is ISwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = SwapsLibrary.getAmountsOut(
+        amounts = getAmountsOut(
             FACTORY,
             msg.value,
             _path
@@ -647,10 +656,11 @@ contract SwapsRouter is ISwapsRouter {
 
         assert(
             IWETH(WETH).transfer(
-                pairFor(
+                _pairFor(
                     FACTORY,
                     _path[0],
-                    _path[1]
+                    _path[1],
+                    PAIR
                 ),
                 amounts[0]
             )
@@ -679,7 +689,7 @@ contract SwapsRouter is ISwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = SwapsLibrary.getAmountsIn(
+        amounts = getAmountsIn(
             FACTORY,
             amountOut,
             path
@@ -693,10 +703,11 @@ contract SwapsRouter is ISwapsRouter {
         _safeTransferFrom(
             path[0],
             msg.sender,
-            pairFor(
+            _pairFor(
                 FACTORY,
                 path[0],
-                path[1]
+                path[1],
+                PAIR
             ),
             amounts[0]
         );
@@ -733,7 +744,7 @@ contract SwapsRouter is ISwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = SwapsLibrary.getAmountsOut(
+        amounts = getAmountsOut(
             FACTORY,
             amountIn,
             path
@@ -747,10 +758,11 @@ contract SwapsRouter is ISwapsRouter {
         _safeTransferFrom(
             path[0],
             msg.sender,
-            pairFor(
+            _pairFor(
                 FACTORY,
                 path[0],
-                path[1]
+                path[1],
+                PAIR
             ),
             amounts[0]
         );
@@ -787,7 +799,7 @@ contract SwapsRouter is ISwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = SwapsLibrary.getAmountsIn(
+        amounts = getAmountsIn(
             FACTORY,
             amountOut,
             path
@@ -804,10 +816,11 @@ contract SwapsRouter is ISwapsRouter {
 
         assert(
             IWETH(WETH).transfer(
-                pairFor(
+                _pairFor(
                     FACTORY,
                     path[0],
-                    path[1]
+                    path[1],
+                    PAIR
                 ),
                 amounts[0]
             )
@@ -845,16 +858,17 @@ contract SwapsRouter is ISwapsRouter {
                 path[i + 1]
             );
 
-            (address token0,) = SwapsLibrary.sortTokens(
+            (address token0,) = sortTokens(
                 input,
                 output
             );
 
             ISwapsPair pair = ISwapsPair(
-                pairFor(
+                _pairFor(
                     FACTORY,
                     input,
-                    output
+                    output,
+                    PAIR
                 )
             );
 
@@ -869,10 +883,10 @@ contract SwapsRouter is ISwapsRouter {
                 : (reserve1, reserve0);
 
             amountInput = IERC20(input).balanceOf(address(pair)) - reserveInput;
-            amountOutput = SwapsLibrary.getAmountOut(amountInput, reserveInput, reserveOutput);
+            amountOutput = getAmountOut(amountInput, reserveInput, reserveOutput);
             }
             (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
-            address to = i < path.length - 2 ? pairFor(FACTORY, output, path[i + 2]) : _to;
+            address to = i < path.length - 2 ? _pairFor(FACTORY, output, path[i + 2], PAIR) : _to;
 
             pair.swap(
                 amount0Out,
@@ -896,10 +910,11 @@ contract SwapsRouter is ISwapsRouter {
         _safeTransferFrom(
             path[0],
             msg.sender,
-            pairFor(
+            _pairFor(
                 FACTORY,
                 path[0],
-                path[1]
+                path[1],
+                PAIR
             ),
             amountIn
         );
@@ -940,10 +955,11 @@ contract SwapsRouter is ISwapsRouter {
 
         assert(
             IWETH(WETH).transfer(
-                pairFor(
+                _pairFor(
                     FACTORY,
                     path[0],
-                    path[1]
+                    path[1],
+                    PAIR
                 ),
                 amountIn
             )
@@ -981,10 +997,11 @@ contract SwapsRouter is ISwapsRouter {
         _safeTransferFrom(
             path[0],
             msg.sender,
-            pairFor(
+            _pairFor(
                 FACTORY,
                 path[0],
-                path[1]
+                path[1],
+                PAIR
             ),
             amountIn
         );
@@ -1013,84 +1030,29 @@ contract SwapsRouter is ISwapsRouter {
         );
     }
 
-    // **** LIBRARY FUNCTIONS ****
-
-    function quote(
-        uint256 _amountA,
-        uint256 _reserveA,
-        uint256 _reserveB
+    function sortTokens(
+        address tokenA,
+        address tokenB
     )
-        public
+        internal
         pure
-        returns (uint256)
+        returns (
+            address token0,
+            address token1
+        )
     {
-        return SwapsLibrary.quote(
-            _amountA,
-            _reserveA,
-            _reserveB
+        require(
+            tokenA != tokenB,
+            'IDENTICAL_ADDRESSES'
         );
-    }
 
-    function getAmountOut(
-        uint256 _amountIn,
-        uint256 _reserveIn,
-        uint256 _reserveOut
-    )
-        public
-        pure
-        returns (uint256)
-    {
-        return SwapsLibrary.getAmountOut(
-            _amountIn,
-            _reserveIn,
-            _reserveOut
-        );
-    }
+        (token0, token1) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
 
-    function getAmountIn(
-        uint256 _amountOut,
-        uint256 _reserveIn,
-        uint256 _reserveOut
-    )
-        public
-        pure
-        returns (uint256)
-    {
-        return SwapsLibrary.getAmountIn(
-            _amountOut,
-            _reserveIn,
-            _reserveOut
-        );
-    }
-
-    function getAmountsOut(
-        uint256 _amountIn,
-        address[] memory _path
-    )
-        public
-        view
-        returns (uint256[] memory)
-    {
-        return SwapsLibrary.getAmountsOut(
-            FACTORY,
-            _amountIn,
-            _path
-        );
-    }
-
-    function getAmountsIn(
-        uint256 amountOut,
-        address[]
-        memory path
-    )
-        public
-        view
-        returns (uint256[] memory)
-    {
-        return SwapsLibrary.getAmountsIn(
-            FACTORY,
-            amountOut,
-            path
+        require(
+            token0 != address(0x0),
+            'ZERO_ADDRESS'
         );
     }
 
@@ -1099,14 +1061,242 @@ contract SwapsRouter is ISwapsRouter {
         address _tokenA,
         address _tokenB
     )
-        public
-        pure
-        returns (address)
+        external
+        view
+        returns (address predicted)
     {
-        return SwapsLibrary.pairFor(
+        predicted = _pairFor(
             _factory,
             _tokenA,
-            _tokenB
+            _tokenB,
+            PAIR
         );
+    }
+
+
+    function _pairFor(
+        address _factory,
+        address _tokenA,
+        address _tokenB,
+        address _implementation
+    )
+        internal
+        view
+        returns (address predicted)
+    {
+        (address token0, address token1) = _tokenA < _tokenB
+            ? (_tokenA, _tokenB)
+            : (_tokenB, _tokenA);
+
+        bytes32 salt = keccak256(
+            abi.encodePacked(
+                token0,
+                token1
+            )
+        );
+
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
+            mstore(add(ptr, 0x14), shl(0x60, _implementation))
+            mstore(add(ptr, 0x28), 0x5af43d82803e903d91602b57fd5bf3ff00000000000000000000000000000000)
+            mstore(add(ptr, 0x38), shl(0x60, _factory))
+            mstore(add(ptr, 0x4c), salt)
+            mstore(add(ptr, 0x6c), keccak256(ptr, 0x37))
+            predicted := keccak256(add(ptr, 0x37), 0x55)
+        }
+    }
+
+
+    // fetches and sorts the reserves for a pair
+
+    function getReserves(
+        address factory,
+        address tokenA,
+        address tokenB
+    )
+        internal
+        view
+        returns (
+            uint reserveA,
+            uint reserveB
+        )
+    {
+        (address token0,) = sortTokens(
+            tokenA,
+            tokenB
+        );
+
+        (uint reserve0, uint reserve1,) = ISwapsPair(
+            _pairFor(
+                factory,
+                tokenA,
+                tokenB,
+                PAIR
+            )
+        ).getReserves();
+
+        (reserveA, reserveB) = tokenA == token0
+            ? (reserve0, reserve1)
+            : (reserve1, reserve0);
+    }
+
+    // given some amount of an asset and pair reserves,
+    // returns an equivalent amount of the other asset
+
+    function quote(
+        uint amountA,
+        uint reserveA,
+        uint reserveB
+    )
+        internal
+        pure
+        returns (uint amountB)
+    {
+        require(
+            amountA > 0,
+            'INSUFFICIENT_AMOUNT'
+        );
+
+        require(
+            reserveA > 0 && reserveB > 0,
+            'INSUFFICIENT_LIQUIDITY'
+        );
+
+        amountB = amountA
+            * reserveB
+            / reserveA;
+    }
+
+    // given an input amount of an asset and pair reserves,
+    // returns the maximum output amount of the other asset
+
+    function getAmountOut(
+        uint256 amountIn,
+        uint256 reserveIn,
+        uint256 reserveOut
+    )
+        internal
+        pure
+        returns (uint256 amountOut)
+    {
+        require(
+            amountIn > 0,
+            'INSUFFICIENT_INPUT_AMOUNT'
+        );
+
+        require(
+            reserveIn > 0 && reserveOut > 0,
+            'INSUFFICIENT_LIQUIDITY'
+        );
+
+        uint256 amountInWithFee = amountIn * 997;
+        uint256 numerator = amountInWithFee * reserveOut;
+        uint256 denominator = reserveIn * 1000 + amountInWithFee;
+
+        amountOut = numerator / denominator;
+    }
+
+    // given an output amount of an asset and pair reserves,
+    // returns a required input amount of the other asset
+
+    function getAmountIn(
+        uint256 amountOut,
+        uint256 reserveIn,
+        uint256 reserveOut
+    )
+        internal
+        pure
+        returns (uint256 amountIn)
+    {
+        require(
+            amountOut > 0,
+            'INSUFFICIENT_OUTPUT_AMOUNT'
+        );
+
+        require(
+            reserveIn > 0 && reserveOut > 0,
+            'INSUFFICIENT_LIQUIDITY'
+        );
+
+        uint256 numerator = reserveIn * amountOut * 1000;
+        uint256 denominator = (reserveOut - amountOut) * 997;
+
+        amountIn = (numerator / denominator) + 1;
+    }
+
+    // performs chained getAmountOut
+    // calculations on any number of pairs
+
+    function getAmountsOut(
+        address factory,
+        uint amountIn,
+        address[] memory path
+    )
+        internal
+        view
+        returns (uint[] memory amounts)
+    {
+        require(
+            path.length >= 2,
+            'INVALID_PATH'
+        );
+
+        amounts = new uint[](path.length);
+        amounts[0] = amountIn;
+
+        for (uint256 i; i < path.length - 1; i++) {
+
+            (uint reserveIn, uint reserveOut) = getReserves(
+                factory,
+                path[i],
+                path[i + 1]
+            );
+
+            amounts[i + 1] = getAmountOut(
+                amounts[i],
+                reserveIn,
+                reserveOut
+            );
+        }
+    }
+
+    // performs chained getAmountIn
+    // calculations on any number of pairs
+
+    function getAmountsIn(
+        address factory,
+        uint amountOut,
+        address[] memory path
+    )
+        internal
+        view
+        returns (uint[] memory amounts)
+    {
+        require(
+            path.length >= 2,
+            'INVALID_PATH'
+        );
+
+        amounts = new uint[](
+            path.length
+        );
+
+        amounts[amounts.length - 1] = amountOut;
+
+        for (uint i = path.length - 1; i > 0; i--) {
+
+            (uint reserveIn, uint reserveOut) = getReserves(
+                factory,
+                path[i - 1],
+                path[i]
+            );
+
+            amounts[i - 1] = getAmountIn(
+                amounts[i],
+                reserveIn,
+                reserveOut
+            );
+        }
     }
 }

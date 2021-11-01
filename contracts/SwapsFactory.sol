@@ -17,13 +17,14 @@ contract SwapsERC20 is ISwapsERC20 {
 
     uint256 public totalSupply;
 
-    mapping(address => uint) public balanceOf;
-    mapping(address => mapping(address => uint)) public allowance;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    mapping(address => uint256) public nonces;
 
-    bytes32 public DOMAIN_SEPARATOR;
-    // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
-    mapping(address => uint) public nonces;
+    bytes32 public immutable DOMAIN_SEPARATOR;
+    bytes32 public constant PERMIT_TYPEHASH = keccak256(
+        "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+    );
 
     event Approval(
         address indexed owner,
@@ -38,13 +39,12 @@ contract SwapsERC20 is ISwapsERC20 {
     );
 
     constructor() {
-        uint256 chainId = block.chainid;
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
                 keccak256(bytes(name)),
                 keccak256(bytes('1')),
-                chainId,
+                block.chainid,
                 address(this)
             )
         );
@@ -233,7 +233,7 @@ contract SwapsERC20 is ISwapsERC20 {
 
 contract SwapsPair is ISwapsPair, SwapsERC20 {
 
-    uint256 public constant MINIMUM_LIQUIDITY = 10**3;
+    uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 private constant SELECTOR = bytes4(
         keccak256(bytes('transfer(address,uint256)'))
     );
@@ -250,7 +250,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
     uint256 public price1CumulativeLast;
 
     uint256 public kLast;
-    uint256 private unlocked = 1;
+    uint256 private unlocked;
 
     modifier lock() {
         require(
@@ -279,14 +279,28 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
     }
 
     function _safeTransfer(
-        address token,
-        address to,
-        uint value
+        address _token,
+        address _to,
+        uint256 _value
     )
-        private
+        internal
     {
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER_FAILED');
+        (bool success, bytes memory data) = _token.call(
+            abi.encodeWithSelector(
+                SELECTOR,
+                _to,
+                _value
+            )
+        );
+
+        require(
+            success == true && (
+                data.length == 0 || abi.decode(
+                    data, (bool)
+                )
+            ),
+            'TRANSFER_FAILED'
+        );
     }
 
     event Mint(
@@ -316,11 +330,6 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         uint112 reserve1
     );
 
-    constructor() SwapsERC20() {
-        factory = msg.sender;
-    }
-
-    // called once by the factory at time of deployment
     function initialize(
         address _token0,
         address _token1
@@ -328,25 +337,27 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         external
     {
         require(
-            msg.sender == factory,
-            'FORBIDDEN'
+            factory == address(0x0),
+            'ALREADY_INITIALIZED'
         );
 
         token0 = _token0;
         token1 = _token1;
+        factory = msg.sender;
+        unlocked = 1;
     }
 
     function _update(
-        uint256 balance0,
-        uint256 balance1,
+        uint256 _balance0,
+        uint256 _balance1,
         uint112 _reserve0,
         uint112 _reserve1
     )
         private
     {
         require(
-            balance0 <= U112_MAX &&
-            balance1 <= U112_MAX,
+            _balance0 <= U112_MAX &&
+            _balance1 <= U112_MAX,
             'OVERFLOW'
         );
 
@@ -359,8 +370,8 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             price1CumulativeLast += uint256(uqdiv(encode(_reserve0), _reserve1)) * timeElapsed;
         }
 
-        reserve0 = uint112(balance0);
-        reserve1 = uint112(balance1);
+        reserve0 = uint112(_balance0);
+        reserve1 = uint112(_balance1);
 
         blockTimestampLast = blockTimestamp;
 
@@ -651,6 +662,7 @@ contract SwapsFactory is ISwapsFactory {
 
     address public feeTo;
     address public feeToSetter;
+    address public immutable cloneTarget;
 
     mapping(address => mapping(address => address)) public getPair;
 
@@ -668,6 +680,22 @@ contract SwapsFactory is ISwapsFactory {
     ) {
         feeToSetter = _feeToSetter;
         feeTo = _feeToSetter;
+
+        bytes32 salt;
+        address pair;
+
+        bytes memory bytecode = type(SwapsPair).creationCode;
+
+        assembly {
+            pair := create2(
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
+            )
+        }
+
+        cloneTarget = pair;
     }
 
     function allPairsLength()
@@ -714,8 +742,6 @@ contract SwapsFactory is ISwapsFactory {
             'PAIR_ALREADY_EXISTS'
         );
 
-        bytes memory bytecode = type(SwapsPair).creationCode;
-
         bytes32 salt = keccak256(
             abi.encodePacked(
                 token0,
@@ -723,8 +749,30 @@ contract SwapsFactory is ISwapsFactory {
             )
         );
 
+        bytes20 targetBytes = bytes20(
+            cloneTarget
+        );
+
         assembly {
-            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
+
+            let clone := mload(0x40)
+
+            mstore(
+                clone,
+                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
+            )
+
+            mstore(
+                add(clone, 0x14),
+                targetBytes
+            )
+
+            mstore(
+                add(clone, 0x28),
+                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
+            )
+
+            pair := create2(0, clone, 0x37, salt)
         }
 
         ISwapsPair(pair).initialize(
