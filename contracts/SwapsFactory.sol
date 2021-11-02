@@ -59,8 +59,10 @@ contract SwapsERC20 is ISwapsERC20 {
         totalSupply =
         totalSupply + _value;
 
-        balanceOf[_to] =
-        balanceOf[_to] + _value;
+        unchecked {
+            balanceOf[_to] =
+            balanceOf[_to] + _value;
+        }
 
         emit Transfer(
             address(0x0),
@@ -75,9 +77,11 @@ contract SwapsERC20 is ISwapsERC20 {
     )
         internal
     {
-        totalSupply =
-        totalSupply - _value;
-
+        unchecked {
+            totalSupply =
+            totalSupply - _value;
+        }
+        
         balanceOf[_from] =
         balanceOf[_from] - _value;
 
