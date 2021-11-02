@@ -54,7 +54,7 @@ contract SwapsRouter {
         internal
         returns (uint256, uint256)
     {
-        if (ISwapsFactory(FACTORY).getPair(_tokenA, _tokenB) == address(0x0)) {
+        if (ISwapsFactory(FACTORY).getPair(_tokenA, _tokenB) == address(0)) {
             ISwapsFactory(FACTORY).createPair(_tokenA, _tokenB);
         }
 
@@ -1051,7 +1051,7 @@ contract SwapsRouter {
             : (tokenB, tokenA);
 
         require(
-            token0 != address(0x0),
+            token0 != address(0),
             'ZERO_ADDRESS'
         );
     }

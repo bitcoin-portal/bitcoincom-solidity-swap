@@ -65,7 +65,7 @@ contract SwapsERC20 is ISwapsERC20 {
         }
 
         emit Transfer(
-            address(0x0),
+            address(0),
             _to,
             _value
         );
@@ -81,13 +81,13 @@ contract SwapsERC20 is ISwapsERC20 {
             totalSupply =
             totalSupply - _value;
         }
-        
+
         balanceOf[_from] =
         balanceOf[_from] - _value;
 
         emit Transfer(
             _from,
-            address(0x0),
+            address(0),
             _value
         );
     }
@@ -182,18 +182,18 @@ contract SwapsERC20 is ISwapsERC20 {
     }
 
     function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
     )
         external
     {
         require(
-            deadline >= block.timestamp,
+            _deadline >= block.timestamp,
             'PERMIT_CALL_EXPIRED'
         );
 
@@ -204,11 +204,11 @@ contract SwapsERC20 is ISwapsERC20 {
                 keccak256(
                     abi.encode(
                         PERMIT_TYPEHASH,
-                        owner,
-                        spender,
-                        value,
-                        nonces[owner]++,
-                        deadline
+                        _owner,
+                        _spender,
+                        _value,
+                        nonces[_owner]++,
+                        _deadline
                     )
                 )
             )
@@ -216,21 +216,21 @@ contract SwapsERC20 is ISwapsERC20 {
 
         address recoveredAddress = ecrecover(
             digest,
-            v,
-            r,
-            s
+            _v,
+            _r,
+            _s
         );
 
         require(
-            recoveredAddress != address(0) &&
-            recoveredAddress == owner,
+            recoveredAddress != address(0),
+            recoveredAddress == _owner,
             'INVALID_SIGNATURE'
         );
 
         _approve(
-            owner,
-            spender,
-            value
+            _owner,
+            _spender,
+            _value
         );
     }
 }
@@ -341,7 +341,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         external
     {
         require(
-            factory == address(0x0),
+            factory == address(0),
             'ALREADY_INITIALIZED'
         );
 
@@ -442,7 +442,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             ) - MINIMUM_LIQUIDITY;
 
             _mint(
-               address(0x0),
+               address(0),
                MINIMUM_LIQUIDITY
             );
 
