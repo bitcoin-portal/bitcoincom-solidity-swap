@@ -222,7 +222,7 @@ contract SwapsERC20 is ISwapsERC20 {
         );
 
         require(
-            recoveredAddress != address(0),
+            recoveredAddress != address(0) &&
             recoveredAddress == _owner,
             'INVALID_SIGNATURE'
         );
@@ -486,8 +486,8 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         external
         lock
         returns (
-            uint amount0,
-            uint amount1
+            uint256 amount0,
+            uint256 amount1
         )
     {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves();
@@ -827,8 +827,8 @@ contract SwapsFactory is ISwapsFactory {
 library Math {
 
     function min(
-        uint _x,
-        uint _y
+        uint256 _x,
+        uint256 _y
     )
         internal
         pure
@@ -838,16 +838,16 @@ library Math {
     }
 
     function sqrt(
-        uint _y
+        uint256 _y
     )
         internal
         pure
-        returns (uint z)
+        returns (uint256 z)
     {
         unchecked {
             if (_y > 3) {
                 z = _y;
-                uint x = _y / 2 + 1;
+                uint256 x = _y / 2 + 1;
                 while (x < z) {
                     z = x;
                     x = (_y / x + x) / 2;

@@ -253,7 +253,7 @@ contract SwapsRouter {
             _liquidity
         );
 
-        (uint amount0, uint amount1) = ISwapsPair(pair).burn(_to);
+        (uint256 amount0, uint256 amount1) = ISwapsPair(pair).burn(_to);
 
         (address token0,) = sortTokens(
             _tokenA,
@@ -339,7 +339,7 @@ contract SwapsRouter {
             PAIR
         );
 
-        uint value = _approveMax
+        uint256 value = _approveMax
             ? U256_MAX
             : _liquidity;
 
@@ -386,7 +386,7 @@ contract SwapsRouter {
             PAIR
         );
 
-        uint value = approveMax
+        uint256 value = approveMax
             ? U256_MAX
             : liquidity;
 
@@ -472,7 +472,7 @@ contract SwapsRouter {
             PAIR
         );
 
-        uint value = approveMax
+        uint256 value = approveMax
             ? U256_MAX
             : liquidity;
 
@@ -503,7 +503,7 @@ contract SwapsRouter {
     )
         internal
     {
-        for (uint i; i < _path.length - 1; i++) {
+        for (uint256 i; i < _path.length - 1; i++) {
 
             (address input, address output) = (
                 _path[i],
@@ -515,9 +515,9 @@ contract SwapsRouter {
                 output
             );
 
-            uint amountOut = _amounts[i + 1];
+            uint256 amountOut = _amounts[i + 1];
 
-            (uint amount0Out, uint amount1Out) = input == token0
+            (uint256 amount0Out, uint256 amount1Out) = input == token0
                 ? (uint(0), amountOut)
                 : (amountOut, uint(0));
 
@@ -784,10 +784,10 @@ contract SwapsRouter {
     }
 
     function swapETHForExactTokens(
-        uint amountOut,
+        uint256 amountOut,
         address[] calldata path,
         address to,
-        uint deadline
+        uint256 deadline
     )
         external
         payable
@@ -851,7 +851,7 @@ contract SwapsRouter {
     )
         internal
     {
-        for (uint i; i < path.length - 1; i++) {
+        for (uint256 i; i < path.length - 1; i++) {
 
             (address input, address output) = (
                 path[i],
@@ -872,20 +872,20 @@ contract SwapsRouter {
                 )
             );
 
-            uint amountInput;
-            uint amountOutput;
+            uint256 amountInput;
+            uint256 amountOutput;
 
             { // scope to avoid stack too deep errors
-            (uint reserve0, uint reserve1,) = pair.getReserves();
+            (uint256 reserve0, uint256 reserve1,) = pair.getReserves();
 
-            (uint reserveInput, uint reserveOutput) = input == token0
+            (uint256 reserveInput, uint256 reserveOutput) = input == token0
                 ? (reserve0, reserve1)
                 : (reserve1, reserve0);
 
             amountInput = IERC20(input).balanceOf(address(pair)) - reserveInput;
             amountOutput = getAmountOut(amountInput, reserveInput, reserveOutput);
             }
-            (uint amount0Out, uint amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
+            (uint256 amount0Out, uint256 amount1Out) = input == token0 ? (uint(0), amountOutput) : (amountOutput, uint(0));
             address to = i < path.length - 2 ? _pairFor(FACTORY, output, path[i + 2], PAIR) : _to;
 
             pair.swap(
@@ -1117,8 +1117,8 @@ contract SwapsRouter {
         internal
         view
         returns (
-            uint reserveA,
-            uint reserveB
+            uint256 reserveA,
+            uint256 reserveB
         )
     {
         (address token0,) = sortTokens(
@@ -1126,7 +1126,7 @@ contract SwapsRouter {
             tokenB
         );
 
-        (uint reserve0, uint reserve1,) = ISwapsPair(
+        (uint256 reserve0, uint256 reserve1,) = ISwapsPair(
             _pairFor(
                 factory,
                 tokenA,
@@ -1144,13 +1144,13 @@ contract SwapsRouter {
     // returns an equivalent amount of the other asset
 
     function quote(
-        uint amountA,
-        uint reserveA,
-        uint reserveB
+        uint256 amountA,
+        uint256 reserveA,
+        uint256 reserveB
     )
         internal
         pure
-        returns (uint amountB)
+        returns (uint256 amountB)
     {
         require(
             amountA > 0,
@@ -1229,7 +1229,7 @@ contract SwapsRouter {
 
     function getAmountsOut(
         address factory,
-        uint amountIn,
+        uint256 amountIn,
         address[] memory path
     )
         internal
@@ -1246,7 +1246,7 @@ contract SwapsRouter {
 
         for (uint256 i; i < path.length - 1; i++) {
 
-            (uint reserveIn, uint reserveOut) = getReserves(
+            (uint256 reserveIn, uint256 reserveOut) = getReserves(
                 factory,
                 path[i],
                 path[i + 1]
@@ -1265,7 +1265,7 @@ contract SwapsRouter {
 
     function getAmountsIn(
         address factory,
-        uint amountOut,
+        uint256 amountOut,
         address[] memory path
     )
         internal
@@ -1283,9 +1283,9 @@ contract SwapsRouter {
 
         amounts[amounts.length - 1] = amountOut;
 
-        for (uint i = path.length - 1; i > 0; i--) {
+        for (uint256 i = path.length - 1; i > 0; i--) {
 
-            (uint reserveIn, uint reserveOut) = getReserves(
+            (uint256 reserveIn, uint256 reserveOut) = getReserves(
                 factory,
                 path[i - 1],
                 path[i]

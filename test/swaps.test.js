@@ -22,7 +22,7 @@ const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 
 require("./utils");
 
-// const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
+const MINIMUM_LIQUIDITY = 10 ** 3;
 
 const BN = web3.utils.BN;
 const APPROVE_VALUE = web3.utils.toWei("1000000");
@@ -243,6 +243,22 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
+        it("should have correct MINIMUM_LIQUIDITY value", async () => {
+
+            const { token0, token1, pair } = await getLastEvent(
+                "PairCreated",
+                factory
+            );
+
+            const pairconract = await SwapsPair.at(pair);
+            const minValue = await pairconract.MINIMUM_LIQUIDITY();
+
+            assert.equal(
+                MINIMUM_LIQUIDITY.toString(),
+                minValue.toString()
+            );
+        });
+
         it("should have corret token0 and token1 values in event", async () => {
 
             // pair already generated in previous test
@@ -341,11 +357,17 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             const token0Value = await pair.token0();
             const token1Value = await pair.token1();
 
-            const expectedToken0 = token.address > token2.address
+            const price0CumulativeLast = await pair.price0CumulativeLast();
+            const price1CumulativeLast = await pair.price1CumulativeLast();
+
+            const kLast = await pair.kLast();
+            const getReserves = await pair.getReserves();
+
+            const expectedToken0 = parseInt(token.address) > parseInt(token2.address)
                 ? token2.address
                 : token.address
 
-            const expectedToken1 = token.address > token2.address
+            const expectedToken1 = parseInt(token.address) > parseInt(token2.address)
                 ? token.address
                 : token2.address
 
