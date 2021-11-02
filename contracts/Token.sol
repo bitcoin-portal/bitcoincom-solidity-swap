@@ -189,7 +189,7 @@ contract Token {
         _totalSupply + _amount;
 
         emit Transfer(
-            address(0x0),
+            address(0),
             _msgSender(),
             _amount
         );
@@ -213,7 +213,7 @@ contract Token {
         _totalSupply + _amount;
 
         emit Transfer(
-            address(0x0),
+            address(0),
             _address,
             _amount
         );
@@ -232,7 +232,7 @@ contract Token {
 
         emit Transfer(
             _msgSender(),
-            address(0x0),
+            address(0),
             _amount
         );
     }
