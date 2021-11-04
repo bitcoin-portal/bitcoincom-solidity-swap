@@ -3,6 +3,7 @@
 pragma solidity ^0.8.9;
 
 uint256 constant U256_MAX = 2 ** 256 - 1;
+address constant ZERO_ADDRESS = address(0x0);
 
 bytes4 constant TRANSFER = bytes4(
     keccak256(
