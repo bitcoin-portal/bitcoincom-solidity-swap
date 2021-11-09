@@ -15,6 +15,9 @@ contract SwapsERC20 is ISwapsERC20 {
     string public constant symbol = 'BCOM-S';
     uint8 public constant decimals = 18;
 
+    address constant ZERO_ADDRESS = address(0);
+    uint256 constant UINT256_MAX = 2 ** 256 - 1;
+
     uint256 public totalSupply;
 
     mapping(address => uint256) public balanceOf;
@@ -65,7 +68,7 @@ contract SwapsERC20 is ISwapsERC20 {
         }
 
         emit Transfer(
-            address(0),
+            ZERO_ADDRESS,
             _to,
             _value
         );
@@ -87,7 +90,7 @@ contract SwapsERC20 is ISwapsERC20 {
 
         emit Transfer(
             _from,
-            address(0),
+            ZERO_ADDRESS,
             _value
         );
     }
@@ -168,9 +171,9 @@ contract SwapsERC20 is ISwapsERC20 {
         external
         returns (bool)
     {
-
-        allowance[_from][msg.sender] =
-        allowance[_from][msg.sender] - _value;
+        if (allowance[_from][msg.sender] != UINT256_MAX) {
+            allowance[_from][msg.sender] -= _value;
+        }
 
         _transfer(
             _from,
@@ -222,7 +225,7 @@ contract SwapsERC20 is ISwapsERC20 {
         );
 
         require(
-            recoveredAddress != address(0) &&
+            recoveredAddress != ZERO_ADDRESS &&
             recoveredAddress == _owner,
             'INVALID_SIGNATURE'
         );
@@ -341,7 +344,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         external
     {
         require(
-            factory == address(0),
+            factory == ZERO_ADDRESS,
             'ALREADY_INITIALIZED'
         );
 
@@ -365,7 +368,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             'OVERFLOW'
         );
 
-        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
+        uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast;
 
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
@@ -442,7 +445,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             ) - MINIMUM_LIQUIDITY;
 
             _mint(
-               address(0),
+               ZERO_ADDRESS,
                MINIMUM_LIQUIDITY
             );
 
@@ -619,7 +622,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
                 balance0Adjusted * balance1Adjusted >=
                 uint256(_reserve0)
                     * _reserve1
-                    * (1000**2)
+                    * (1000 ** 2)
             );
         }
 
@@ -667,6 +670,7 @@ contract SwapsFactory is ISwapsFactory {
     address public feeTo;
     address public feeToSetter;
     address public immutable cloneTarget;
+    address constant ZERO_ADDRESS = address(0);
 
     mapping(address => mapping(address => address)) public getPair;
 
@@ -737,12 +741,12 @@ contract SwapsFactory is ISwapsFactory {
             : (_tokenB, _tokenA);
 
         require(
-            token0 != address(0),
+            token0 != ZERO_ADDRESS,
             'ZERO_ADDRESS'
         );
 
         require(
-            getPair[token0][token1] == address(0),
+            getPair[token0][token1] == ZERO_ADDRESS,
             'PAIR_ALREADY_EXISTS'
         );
 
