@@ -27,3 +27,38 @@ function uqdiv(
         return _x / uint224(_y);
     }
 }
+
+library Math {
+
+    function min(
+        uint256 _x,
+        uint256 _y
+    )
+        internal
+        pure
+        returns (uint)
+    {
+        return _x < _y ? _x : _y;
+    }
+
+    function sqrt(
+        uint256 _y
+    )
+        internal
+        pure
+        returns (uint256 z)
+    {
+        unchecked {
+            if (_y > 3) {
+                z = _y;
+                uint256 x = _y / 2 + 1;
+                while (x < z) {
+                    z = x;
+                    x = (_y / x + x) / 2;
+                }
+            } else if (_y != 0) {
+                z = 1;
+            }
+        }
+    }
+}
