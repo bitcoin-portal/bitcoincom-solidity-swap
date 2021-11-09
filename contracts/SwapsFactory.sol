@@ -121,8 +121,10 @@ contract SwapsERC20 is ISwapsERC20 {
         balanceOf[_from] =
         balanceOf[_from] - _value;
 
-        balanceOf[_to] =
-        balanceOf[_to] + _value;
+        unchecked {
+            balanceOf[_to] =
+            balanceOf[_to] + _value;
+        }
 
         emit Transfer(
             _from,
