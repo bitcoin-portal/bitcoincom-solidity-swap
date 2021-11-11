@@ -828,4 +828,12 @@ contract SwapsFactory is ISwapsFactory {
 
         feeToSetter = _feeToSetter;
     }
+
+    function factoryCodeHash()
+        external
+        view
+        returns (bytes32)
+    {
+        return address(this).codehash;
+    }
 }

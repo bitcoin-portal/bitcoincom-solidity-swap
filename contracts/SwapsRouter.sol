@@ -1312,4 +1312,12 @@ contract SwapsRouter {
             );
         }
     }
+
+    function routerCodeHash()
+        external
+        view
+        returns (bytes32)
+    {
+        return address(this).codehash;
+    }
 }
