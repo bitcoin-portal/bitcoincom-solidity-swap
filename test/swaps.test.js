@@ -2,11 +2,10 @@
 
 const Token = artifacts.require("Token");
 const Weth = artifacts.require("WrappedEther");
+
 const Router = artifacts.require("SwapsRouter");
 const Factory = artifacts.require("SwapsFactory");
 const SwapsPair = artifacts.require("SwapsPair")
-const ISwapsPair = artifacts.require("ISwapsPair");
-
 
 const ethUtil = require('ethereumjs-util');
 const { defaultAbiCoder } = require('@ethersproject/abi');
@@ -23,10 +22,11 @@ const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 
 require("./utils");
 
-// const MINIMUM_LIQUIDITY = bigNumberify(10).pow(3)
+const MINIMUM_LIQUIDITY = 10 ** 3;
 
 const BN = web3.utils.BN;
 const APPROVE_VALUE = web3.utils.toWei("1000000");
+const APPROVE_VALUE_MAX = web3.utils.toBN(2).pow(web3.utils.toBN(256)).sub(web3.utils.toBN(1));
 
 const ONE_ETH = web3.utils.toWei("1");
 const ONE_TOKEN = web3.utils.toWei("1");
@@ -244,6 +244,22 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
+        it("should have correct MINIMUM_LIQUIDITY value", async () => {
+
+            const { token0, token1, pair } = await getLastEvent(
+                "PairCreated",
+                factory
+            );
+
+            const pairconract = await SwapsPair.at(pair);
+            const minValue = await pairconract.MINIMUM_LIQUIDITY();
+
+            assert.equal(
+                MINIMUM_LIQUIDITY.toString(),
+                minValue.toString()
+            );
+        });
+
         it("should have corret token0 and token1 values in event", async () => {
 
             // pair already generated in previous test
@@ -342,11 +358,17 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             const token0Value = await pair.token0();
             const token1Value = await pair.token1();
 
-            const expectedToken0 = token.address > token2.address
+            const price0CumulativeLast = await pair.price0CumulativeLast();
+            const price1CumulativeLast = await pair.price1CumulativeLast();
+
+            const kLast = await pair.kLast();
+            const getReserves = await pair.getReserves();
+
+            const expectedToken0 = parseInt(token.address) > parseInt(token2.address)
                 ? token2.address
                 : token.address
 
-            const expectedToken1 = token.address > token2.address
+            const expectedToken1 = parseInt(token.address) > parseInt(token2.address)
                 ? token.address
                 : token2.address
 
@@ -387,13 +409,13 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
             await token2.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -415,7 +437,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 token2.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
 
             tokenBalance = await token.balanceOf(pairAddress);
             token2Balance = await token2.balanceOf(pairAddress);
@@ -444,7 +466,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -464,7 +486,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
             wethBalance = await weth.balanceOf(pairAddress);
             tokenBalance = await token.balanceOf(pairAddress);
 
@@ -494,7 +516,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 token2.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
             ownersBalance = await pair.balanceOf(owner);
 
             assert.isAbove(
@@ -504,7 +526,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await pair.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -514,8 +536,8 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
 
             assert.equal(
-                allowance,
-                APPROVE_VALUE
+                allowance.toString(),
+                APPROVE_VALUE_MAX.toString()
             );
 
             await router.removeLiquidity(
@@ -537,7 +559,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             );
 
-            pair = await ISwapsPair.at(pairAddress);
+            pair = await SwapsPair.at(pairAddress);
             ownersBalance = await pair.balanceOf(owner);
 
             assert.isAbove(
@@ -547,7 +569,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await pair.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -557,8 +579,8 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
 
             assert.equal(
-                allowance,
-                APPROVE_VALUE
+                allowance.toString(),
+                APPROVE_VALUE_MAX.toString()
             );
 
             await router.removeLiquidityETH(
@@ -581,7 +603,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -671,7 +693,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -772,7 +794,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -878,13 +900,13 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
             await token2.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -960,12 +982,12 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE
+                APPROVE_VALUE_MAX
             );
 
             await token2.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -1314,13 +1336,13 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             await token.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
             await token2.approve(
                 router.address,
-                APPROVE_VALUE,
+                APPROVE_VALUE_MAX,
                 {from: owner}
             );
 
@@ -1556,25 +1578,40 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             const transferValue = ONE_TOKEN;
             const expectedRecipient = bob;
+            const expectedExecuter = alice;
 
             await pair.approve(
-                owner,
+                expectedExecuter,
                 transferValue
             );
 
             const balanceBefore = await pair.balanceOf(owner);
+            const allowanceBefore = await pair.allowance(
+                owner,
+                expectedExecuter
+            );
 
             await pair.transferFrom(
                 owner,
                 expectedRecipient,
                 transferValue,
+                { from : expectedExecuter }
             );
 
             const balanceAfter = await pair.balanceOf(owner);
+            const allowanceAfter = await pair.allowance(
+                owner,
+                expectedExecuter
+            );
 
             assert.equal(
                 (new BN(balanceAfter)).toString(),
                 (new BN(balanceBefore).sub(new BN(transferValue))).toString()
+            );
+
+            assert.equal(
+                (new BN(allowanceAfter)).toString(),
+                (new BN(allowanceBefore).sub(new BN(transferValue))).toString()
             );
         });
 
@@ -1602,15 +1639,56 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it("should revert if there is no approval when using transferFrom", async () => {
+        it("transferFrom should not reduce approval if max value is used", async () => {
+
             const transferValue = ONE_TOKEN;
             const expectedRecipient = bob;
+            const expectedExecuter = alice;
 
+            await pair.approve(
+                expectedExecuter,
+                APPROVE_VALUE_MAX
+            );
+
+            const balanceBefore = await pair.balanceOf(owner);
+            const allowanceBefore = await pair.allowance(
+                owner,
+                expectedExecuter
+            );
+
+            await pair.transferFrom(
+                owner,
+                expectedRecipient,
+                transferValue,
+                { from : expectedExecuter }
+            );
+
+            const balanceAfter = await pair.balanceOf(owner);
+            const allowanceAfter = await pair.allowance(
+                owner,
+                expectedExecuter
+            );
+
+            assert.equal(
+                (new BN(balanceAfter)).toString(),
+                (new BN(balanceBefore).sub(new BN(transferValue))).toString()
+            );
+
+            assert.equal(
+                (new BN(allowanceAfter)).toString(),
+                (new BN(allowanceBefore)).toString()
+            );
+        });
+
+        it("should revert if there is no approval when using transferFrom", async () => {
+            const transferValue = ONE_TOKEN;
             await catchRevert(
                 pair.transferFrom(
+                    bob,
                     owner,
-                    expectedRecipient,
-                    transferValue
+                    transferValue, {
+                        from: alice
+                    }
                 ),
                 "revert REQUIRES APPROVAL"
             );

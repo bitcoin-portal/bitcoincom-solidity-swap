@@ -15,15 +15,19 @@ contract SwapsERC20 is ISwapsERC20 {
     string public constant symbol = 'BCOM-S';
     uint8 public constant decimals = 18;
 
+    address constant ZERO_ADDRESS = address(0);
+    uint256 constant UINT256_MAX = 2 ** 256 - 1;
+
     uint256 public totalSupply;
 
-    mapping(address => uint) public balanceOf;
-    mapping(address => mapping(address => uint)) public allowance;
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+    mapping(address => uint256) public nonces;
 
-    bytes32 public DOMAIN_SEPARATOR;
-    // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)");
-    bytes32 public constant PERMIT_TYPEHASH = 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9;
-    mapping(address => uint) public nonces;
+    bytes32 public immutable DOMAIN_SEPARATOR;
+    bytes32 public constant PERMIT_TYPEHASH = keccak256(
+        "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+    );
 
     event Approval(
         address indexed owner,
@@ -38,13 +42,12 @@ contract SwapsERC20 is ISwapsERC20 {
     );
 
     constructor() {
-        uint256 chainId = block.chainid;
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
                 keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
                 keccak256(bytes(name)),
                 keccak256(bytes('1')),
-                chainId,
+                block.chainid,
                 address(this)
             )
         );
@@ -59,11 +62,13 @@ contract SwapsERC20 is ISwapsERC20 {
         totalSupply =
         totalSupply + _value;
 
-        balanceOf[_to] =
-        balanceOf[_to] + _value;
+        unchecked {
+            balanceOf[_to] =
+            balanceOf[_to] + _value;
+        }
 
         emit Transfer(
-            address(0x0),
+            ZERO_ADDRESS,
             _to,
             _value
         );
@@ -75,15 +80,17 @@ contract SwapsERC20 is ISwapsERC20 {
     )
         internal
     {
-        totalSupply =
-        totalSupply - _value;
+        unchecked {
+            totalSupply =
+            totalSupply - _value;
+        }
 
         balanceOf[_from] =
         balanceOf[_from] - _value;
 
         emit Transfer(
             _from,
-            address(0x0),
+            ZERO_ADDRESS,
             _value
         );
     }
@@ -114,8 +121,10 @@ contract SwapsERC20 is ISwapsERC20 {
         balanceOf[_from] =
         balanceOf[_from] - _value;
 
-        balanceOf[_to] =
-        balanceOf[_to] + _value;
+        unchecked {
+            balanceOf[_to] =
+            balanceOf[_to] + _value;
+        }
 
         emit Transfer(
             _from,
@@ -164,9 +173,9 @@ contract SwapsERC20 is ISwapsERC20 {
         external
         returns (bool)
     {
-
-        allowance[_from][msg.sender] =
-        allowance[_from][msg.sender] - _value;
+        if (allowance[_from][msg.sender] != UINT256_MAX) {
+            allowance[_from][msg.sender] -= _value;
+        }
 
         _transfer(
             _from,
@@ -178,18 +187,18 @@ contract SwapsERC20 is ISwapsERC20 {
     }
 
     function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
     )
         external
     {
         require(
-            deadline >= block.timestamp,
+            _deadline >= block.timestamp,
             'PERMIT_CALL_EXPIRED'
         );
 
@@ -200,11 +209,11 @@ contract SwapsERC20 is ISwapsERC20 {
                 keccak256(
                     abi.encode(
                         PERMIT_TYPEHASH,
-                        owner,
-                        spender,
-                        value,
-                        nonces[owner]++,
-                        deadline
+                        _owner,
+                        _spender,
+                        _value,
+                        nonces[_owner]++,
+                        _deadline
                     )
                 )
             )
@@ -212,28 +221,28 @@ contract SwapsERC20 is ISwapsERC20 {
 
         address recoveredAddress = ecrecover(
             digest,
-            v,
-            r,
-            s
+            _v,
+            _r,
+            _s
         );
 
         require(
-            recoveredAddress != address(0) &&
-            recoveredAddress == owner,
+            recoveredAddress != ZERO_ADDRESS &&
+            recoveredAddress == _owner,
             'INVALID_SIGNATURE'
         );
 
         _approve(
-            owner,
-            spender,
-            value
+            _owner,
+            _spender,
+            _value
         );
     }
 }
 
 contract SwapsPair is ISwapsPair, SwapsERC20 {
 
-    uint256 public constant MINIMUM_LIQUIDITY = 10**3;
+    uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
     bytes4 private constant SELECTOR = bytes4(
         keccak256(bytes('transfer(address,uint256)'))
     );
@@ -250,7 +259,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
     uint256 public price1CumulativeLast;
 
     uint256 public kLast;
-    uint256 private unlocked = 1;
+    uint256 private unlocked;
 
     modifier lock() {
         require(
@@ -279,14 +288,28 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
     }
 
     function _safeTransfer(
-        address token,
-        address to,
-        uint value
+        address _token,
+        address _to,
+        uint256 _value
     )
-        private
+        internal
     {
-        (bool success, bytes memory data) = token.call(abi.encodeWithSelector(SELECTOR, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))), 'TRANSFER_FAILED');
+        (bool success, bytes memory data) = _token.call(
+            abi.encodeWithSelector(
+                SELECTOR,
+                _to,
+                _value
+            )
+        );
+
+        require(
+            success == true && (
+                data.length == 0 || abi.decode(
+                    data, (bool)
+                )
+            ),
+            'TRANSFER_FAILED'
+        );
     }
 
     event Mint(
@@ -316,11 +339,6 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         uint112 reserve1
     );
 
-    constructor() SwapsERC20() {
-        factory = msg.sender;
-    }
-
-    // called once by the factory at time of deployment
     function initialize(
         address _token0,
         address _token1
@@ -328,29 +346,31 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         external
     {
         require(
-            msg.sender == factory,
-            'FORBIDDEN'
+            factory == ZERO_ADDRESS,
+            'ALREADY_INITIALIZED'
         );
 
         token0 = _token0;
         token1 = _token1;
+        factory = msg.sender;
+        unlocked = 1;
     }
 
     function _update(
-        uint256 balance0,
-        uint256 balance1,
+        uint256 _balance0,
+        uint256 _balance1,
         uint112 _reserve0,
         uint112 _reserve1
     )
         private
     {
         require(
-            balance0 <= U112_MAX &&
-            balance1 <= U112_MAX,
+            _balance0 <= U112_MAX &&
+            _balance1 <= U112_MAX,
             'OVERFLOW'
         );
 
-        uint32 blockTimestamp = uint32(block.timestamp % 2**32);
+        uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
         uint32 timeElapsed = blockTimestamp - blockTimestampLast;
 
         if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
@@ -359,8 +379,8 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             price1CumulativeLast += uint256(uqdiv(encode(_reserve0), _reserve1)) * timeElapsed;
         }
 
-        reserve0 = uint112(balance0);
-        reserve1 = uint112(balance1);
+        reserve0 = uint112(_balance0);
+        reserve1 = uint112(_balance1);
 
         blockTimestampLast = blockTimestamp;
 
@@ -427,7 +447,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
             ) - MINIMUM_LIQUIDITY;
 
             _mint(
-               address(0x0),
+               ZERO_ADDRESS,
                MINIMUM_LIQUIDITY
             );
 
@@ -471,8 +491,8 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
         external
         lock
         returns (
-            uint amount0,
-            uint amount1
+            uint256 amount0,
+            uint256 amount1
         )
     {
         (uint112 _reserve0, uint112 _reserve1,) = getReserves();
@@ -604,7 +624,7 @@ contract SwapsPair is ISwapsPair, SwapsERC20 {
                 balance0Adjusted * balance1Adjusted >=
                 uint256(_reserve0)
                     * _reserve1
-                    * (1000**2)
+                    * (1000 ** 2)
             );
         }
 
@@ -651,6 +671,8 @@ contract SwapsFactory is ISwapsFactory {
 
     address public feeTo;
     address public feeToSetter;
+    address public immutable cloneTarget;
+    address constant ZERO_ADDRESS = address(0);
 
     mapping(address => mapping(address => address)) public getPair;
 
@@ -668,6 +690,22 @@ contract SwapsFactory is ISwapsFactory {
     ) {
         feeToSetter = _feeToSetter;
         feeTo = _feeToSetter;
+
+        bytes32 salt;
+        address pair;
+
+        bytes memory bytecode = type(SwapsPair).creationCode;
+
+        assembly {
+            pair := create2(
+                0,
+                add(bytecode, 32),
+                mload(bytecode),
+                salt
+            )
+        }
+
+        cloneTarget = pair;
     }
 
     function allPairsLength()
@@ -705,16 +743,14 @@ contract SwapsFactory is ISwapsFactory {
             : (_tokenB, _tokenA);
 
         require(
-            token0 != address(0),
+            token0 != ZERO_ADDRESS,
             'ZERO_ADDRESS'
         );
 
         require(
-            getPair[token0][token1] == address(0),
+            getPair[token0][token1] == ZERO_ADDRESS,
             'PAIR_ALREADY_EXISTS'
         );
-
-        bytes memory bytecode = type(SwapsPair).creationCode;
 
         bytes32 salt = keccak256(
             abi.encodePacked(
@@ -723,8 +759,30 @@ contract SwapsFactory is ISwapsFactory {
             )
         );
 
+        bytes20 targetBytes = bytes20(
+            cloneTarget
+        );
+
         assembly {
-            pair := create2(0, add(bytecode, 32), mload(bytecode), salt)
+
+            let clone := mload(0x40)
+
+            mstore(
+                clone,
+                0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000
+            )
+
+            mstore(
+                add(clone, 0x14),
+                targetBytes
+            )
+
+            mstore(
+                add(clone, 0x28),
+                0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000
+            )
+
+            pair := create2(0, clone, 0x37, salt)
         }
 
         ISwapsPair(pair).initialize(
@@ -770,39 +828,12 @@ contract SwapsFactory is ISwapsFactory {
 
         feeToSetter = _feeToSetter;
     }
-}
 
-library Math {
-
-    function min(
-        uint _x,
-        uint _y
-    )
-        internal
-        pure
-        returns (uint)
+    function factoryCodeHash()
+        external
+        view
+        returns (bytes32)
     {
-        return _x < _y ? _x : _y;
-    }
-
-    function sqrt(
-        uint _y
-    )
-        internal
-        pure
-        returns (uint z)
-    {
-        unchecked {
-            if (_y > 3) {
-                z = _y;
-                uint x = _y / 2 + 1;
-                while (x < z) {
-                    z = x;
-                    x = (_y / x + x) / 2;
-                }
-            } else if (_y != 0) {
-                z = 1;
-            }
-        }
+        return address(this).codehash;
     }
 }
