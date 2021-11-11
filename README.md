@@ -126,3 +126,27 @@ All files            |     89.2 |       60 |    87.91 |    89.46 |              
 ·--------------------------------------------------------------------------|-------------|-------------|-------------|--------------|-------------·
 
 ```
+
+
+### Expected Values
+
+💻 expected compiler version: ```0.8.9+commit.e5eed63a.js```
+
+💻 expected optimization option: ```Enabled: 200```
+
+
+
+💰 expected creationCode hash for SwapsPair:
+```
+0xc287d48cb47960ed70076a08eaff97a70acc01cd9ba4f0d8f0b8c9bb2f683d28
+```
+
+🏭 expected creationCode hash for SwapsFactory:
+```
+0xbd3348fdd4b7abbd35cce4f6ad81c086accfadc1792e5c75db1e02c5d1f0e4bb
+```
+
+💎 expected creationCode hash for SwapsRouter:
+```
+0x97a2dd612dd20d14a95cef9eba63bfab3bdcacbc8b3f69e93330d59e6a8d6e70
+```

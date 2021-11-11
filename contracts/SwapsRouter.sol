@@ -1312,12 +1312,16 @@ contract SwapsRouter {
             );
         }
     }
+}
 
+contract CreationCodeCheck {
     function routerCodeHash()
         external
-        view
+        pure
         returns (bytes32)
     {
-        return address(this).codehash;
+        return keccak256(
+            type(SwapsRouter).creationCode
+        );
     }
 }
