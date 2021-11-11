@@ -548,7 +548,7 @@ contract SwapsRouter {
         ensure(_deadline)
         returns (uint256[] memory amounts)
     {
-        amounts = getAmountsOut(
+        amounts = _getAmountsOut(
             FACTORY,
             _amountIn,
             _path
@@ -589,7 +589,7 @@ contract SwapsRouter {
         ensure(_deadline)
         returns (uint256[] memory amounts)
     {
-        amounts = getAmountsIn(
+        amounts = _getAmountsIn(
             FACTORY,
             _amountOut,
             _path
@@ -635,7 +635,7 @@ contract SwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = getAmountsOut(
+        amounts = _getAmountsOut(
             FACTORY,
             msg.value,
             _path
@@ -685,7 +685,7 @@ contract SwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = getAmountsIn(
+        amounts = _getAmountsIn(
             FACTORY,
             _amountOut,
             _path
@@ -740,7 +740,7 @@ contract SwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = getAmountsOut(
+        amounts = _getAmountsOut(
             FACTORY,
             _amountIn,
             _path
@@ -795,7 +795,7 @@ contract SwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = getAmountsIn(
+        amounts = _getAmountsIn(
             FACTORY,
             _amountOut,
             _path
@@ -1108,6 +1108,36 @@ contract SwapsRouter {
         }
     }
 
+    function getAmountsOut(
+        uint256 _amountIn,
+        address[] memory _path
+    )
+        external
+        view
+        returns (uint256[] memory amounts)
+    {
+        return _getAmountsOut(
+            FACTORY,
+            _amountIn,
+            _path
+        );
+    }
+
+    function getAmountsIn(
+        uint256 _amountOut,
+        address[] memory _path
+    )
+        external
+        view
+        returns (uint256[] memory amounts)
+    {
+        return _getAmountsIn(
+            FACTORY,
+            _amountOut,
+            _path
+        );
+    }
+
     function getReserves(
         address _factory,
         address _tokenA,
@@ -1144,7 +1174,7 @@ contract SwapsRouter {
         uint256 _reserveA,
         uint256 _reserveB
     )
-        internal
+        public
         pure
         returns (uint256 amountB)
     {
@@ -1168,7 +1198,7 @@ contract SwapsRouter {
         uint256 _reserveIn,
         uint256 _reserveOut
     )
-        internal
+        public
         pure
         returns (uint256 amountOut)
     {
@@ -1194,7 +1224,7 @@ contract SwapsRouter {
         uint256 _reserveIn,
         uint256 _reserveOut
     )
-        internal
+        public
         pure
         returns (uint256 amountIn)
     {
@@ -1214,7 +1244,7 @@ contract SwapsRouter {
         amountIn = numerator / denominator + 1;
     }
 
-    function getAmountsOut(
+    function _getAmountsOut(
         address _factory,
         uint256 _amountIn,
         address[] memory _path
@@ -1247,7 +1277,7 @@ contract SwapsRouter {
         }
     }
 
-    function getAmountsIn(
+    function _getAmountsIn(
         address _factory,
         uint256 _amountOut,
         address[] memory _path
