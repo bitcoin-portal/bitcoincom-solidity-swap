@@ -41,47 +41,6 @@ contract SwapsPair is SwapsERC20 {
         unlocked = 1;
     }
 
-    function getReserves()
-        public
-        view
-        returns (
-            uint112,
-            uint112,
-            uint32
-        )
-    {
-        return (
-            reserve0,
-            reserve1,
-            blockTimestampLast
-        );
-    }
-
-    function _safeTransfer(
-        address _token,
-        address _to,
-        uint256 _value
-    )
-        internal
-    {
-        (bool success, bytes memory data) = _token.call(
-            abi.encodeWithSelector(
-                SELECTOR,
-                _to,
-                _value
-            )
-        );
-
-        require(
-            success == true && (
-                data.length == 0 || abi.decode(
-                    data, (bool)
-                )
-            ),
-            'SwapsPair: TRANSFER_FAILED'
-        );
-    }
-
     event Mint(
         address indexed sender,
         uint256 amount0,
@@ -124,6 +83,22 @@ contract SwapsPair is SwapsERC20 {
         token1 = _token1;
         factory = msg.sender;
         unlocked = 1;
+    }
+
+    function getReserves()
+        public
+        view
+        returns (
+            uint112,
+            uint112,
+            uint32
+        )
+    {
+        return (
+            reserve0,
+            reserve1,
+            blockTimestampLast
+        );
     }
 
     function _update(
@@ -503,5 +478,30 @@ contract SwapsPair is SwapsERC20 {
                 z = 1;
             }
         }
+    }
+
+    function _safeTransfer(
+        address _token,
+        address _to,
+        uint256 _value
+    )
+        internal
+    {
+        (bool success, bytes memory data) = _token.call(
+            abi.encodeWithSelector(
+                SELECTOR,
+                _to,
+                _value
+            )
+        );
+
+        require(
+            success == true && (
+                data.length == 0 || abi.decode(
+                    data, (bool)
+                )
+            ),
+            'SwapsPair: TRANSFER_FAILED'
+        );
     }
 }
