@@ -135,17 +135,17 @@ All files            |     89.2 |       60 |    87.91 |    89.46 |              
 
 
 
-💰 expected creationCode hash for SwapsPair:
-```
-0xc287d48cb47960ed70076a08eaff97a70acc01cd9ba4f0d8f0b8c9bb2f683d28
-```
-
 🏭 expected creationCode hash for SwapsFactory:
 ```
-0xbd3348fdd4b7abbd35cce4f6ad81c086accfadc1792e5c75db1e02c5d1f0e4bb
+0x8543d090274bc691d984f3cd1313ecae777dda3188f95efccd8d6870a2e7dc68
+```
+
+💰 expected creationCode hash for SwapsPair:
+```
+0x83b15262fa39d16d5ee4b6ee8c78b690e0d057965235d047ab87e81ab7e8c2f9
 ```
 
 💎 expected creationCode hash for SwapsRouter:
 ```
-0x97a2dd612dd20d14a95cef9eba63bfab3bdcacbc8b3f69e93330d59e6a8d6e70
+0xe18db92ec1acc15b42598f4a6261e8b8e4222d3cbc51a1a639feaa1769571372
 ```
