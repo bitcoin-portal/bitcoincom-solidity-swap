@@ -1314,7 +1314,7 @@ contract SwapsRouter {
     }
 }
 
-contract CreationCodeCheck {
+contract RouterCodeCheck {
     function routerCodeHash()
         external
         pure
