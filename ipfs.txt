@@ -1,0 +1,25 @@
+Metadata of "creationcodecheck" was published successfully.
+
+IERC20.sol :
+ipfs://QmYgL63ucNxpqL4wDQaGnd77sDHVgbcJsM9MZ5YtCePX5N
+
+ISwapsCallee.sol :
+ipfs://QmNwBqB81EBivtYrgwhenVvwsF3BZfbt4KqnB2QdU1R11u
+
+ISwapsERC20.sol :
+ipfs://QmP8TrUPgxtwiEkG78AoU3Fnrtcd3YDeZRwvcUL8NEuiKW
+
+ISwapsFactory.sol :
+ipfs://QmVMiQ5qnFd1sbJE8na67ENVNjqVh1uxvjd3ABQYA9amFZ
+
+ISwapsPair.sol :
+ipfs://QmSCU7mhenmrBEB3o6jZawtyTT9t95oxmBuUAMhLpNzrGw
+
+SwapsFactory.sol :
+ipfs://QmSDB6faGwef1LQdmfcnHwYdiiLbAYEZYrgJqTZZRmWWZm
+
+SwapsHelper.sol :
+ipfs://QmaZgijpXAUtsJdbBTR3BwCjiTjCzKsKH2UtjSxPs9XAqw
+
+metadata.json :
+ipfs://QmZK8JdxMvSeL4GCLtB54Jzr23URC992PhHUt7ir3QzrUL
