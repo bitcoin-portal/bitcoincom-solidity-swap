@@ -6,9 +6,9 @@ import "./IWETH.sol";
 import "./IERC20.sol";
 import "./ISwapsFactory.sol";
 import "./ISwapsPair.sol";
-import "./TransferHelper.sol";
+import "./SwapsHelper.sol";
 
-contract SwapsRouter {
+contract SwapsRouter is SwapsHelper  {
 
     address public immutable FACTORY;
     address public immutable WETH;
@@ -55,10 +55,17 @@ contract SwapsRouter {
         returns (uint256, uint256)
     {
         if (ISwapsFactory(FACTORY).getPair(_tokenA, _tokenB) == ZERO_ADDRESS) {
-            ISwapsFactory(FACTORY).createPair(_tokenA, _tokenB);
+            ISwapsFactory(FACTORY).createPair(
+                _tokenA,
+                _tokenB
+            );
         }
 
-        (uint256 reserveA, uint256 reserveB) = getReserves(
+        (
+            uint256 reserveA,
+            uint256 reserveB
+
+        ) = getReserves(
             FACTORY,
             _tokenA,
             _tokenB
@@ -78,6 +85,7 @@ contract SwapsRouter {
         );
 
         if (amountBOptimal <= _amountBDesired) {
+
             require(
                 amountBOptimal >= _amountBMin,
                 'INSUFFICIENT_B_AMOUNT'
@@ -215,10 +223,12 @@ contract SwapsRouter {
         liquidity = ISwapsPair(pair).mint(_to);
 
         if (msg.value > amountETH) {
-            safeTransferETH(
-                msg.sender,
-                msg.value - amountETH
-            );
+            unchecked {
+                _safeTransferETH(
+                    msg.sender,
+                    msg.value - amountETH
+                );
+            }
         }
     }
 
@@ -245,13 +255,18 @@ contract SwapsRouter {
             PAIR
         );
 
-        ISwapsPair(pair).transferFrom(
+        _safeTransferFrom(
+            pair,
             msg.sender,
             pair,
             _liquidity
         );
 
-        (uint256 amount0, uint256 amount1) = ISwapsPair(pair).burn(_to);
+        (
+            uint256 amount0,
+            uint256 amount1
+
+        ) = ISwapsPair(pair).burn(_to);
 
         (address token0,) = sortTokens(
             _tokenA,
@@ -308,7 +323,7 @@ contract SwapsRouter {
             amountETH
         );
 
-        safeTransferETH(
+        _safeTransferETH(
             _to,
             amountETH
         );
@@ -338,7 +353,7 @@ contract SwapsRouter {
         );
 
         uint256 value = _approveMax
-            ? U256_MAX
+            ? UINT256_MAX
             : _liquidity;
 
         ISwapsPair(pair).permit(
@@ -385,7 +400,7 @@ contract SwapsRouter {
         );
 
         uint256 value = _approveMax
-            ? U256_MAX
+            ? UINT256_MAX
             : _liquidity;
 
         ISwapsPair(pair).permit(
@@ -440,7 +455,7 @@ contract SwapsRouter {
             amountETH
         );
 
-        safeTransferETH(
+        _safeTransferETH(
             _to,
             amountETH
         );
@@ -469,7 +484,7 @@ contract SwapsRouter {
         );
 
         uint256 value = _approveMax
-            ? U256_MAX
+            ? UINT256_MAX
             : _liquidity;
 
         ISwapsPair(pair).permit(
@@ -718,7 +733,7 @@ contract SwapsRouter {
             amounts[amounts.length - 1]
         );
 
-        safeTransferETH(
+        _safeTransferETH(
             _to,
             amounts[amounts.length - 1]
         );
@@ -773,7 +788,7 @@ contract SwapsRouter {
             amounts[amounts.length - 1]
         );
 
-        safeTransferETH(
+        _safeTransferETH(
             _to,
             amounts[amounts.length - 1]
         );
@@ -830,7 +845,7 @@ contract SwapsRouter {
 
         if (msg.value > amounts[0]) {
             unchecked {
-                safeTransferETH(
+                _safeTransferETH(
                     msg.sender,
                     msg.value - amounts[0]
                 );
@@ -870,14 +885,22 @@ contract SwapsRouter {
 
             {
 
-            (uint256 reserve0, uint256 reserve1,) = pair.getReserves();
+            (
+                uint256 reserve0,
+                uint256 reserve1,
+
+            ) = pair.getReserves();
 
             (uint256 reserveInput, uint256 reserveOutput) = input == token0
                 ? (reserve0, reserve1)
                 : (reserve1, reserve0);
 
             amountInput = IERC20(input).balanceOf(address(pair)) - reserveInput;
-            amountOutput = getAmountOut(amountInput, reserveInput, reserveOutput);
+            amountOutput = getAmountOut(
+                amountInput,
+                reserveInput,
+                reserveOutput
+            );
 
             }
 
@@ -1026,35 +1049,9 @@ contract SwapsRouter {
             amountOut
         );
 
-        safeTransferETH(
+        _safeTransferETH(
             _to,
             amountOut
-        );
-    }
-
-    function sortTokens(
-        address _tokenA,
-        address _tokenB
-    )
-        internal
-        pure
-        returns (
-            address token0,
-            address token1
-        )
-    {
-        require(
-            _tokenA != _tokenB,
-            'IDENTICAL_ADDRESSES'
-        );
-
-        (token0, token1) = _tokenA < _tokenB
-            ? (_tokenA, _tokenB)
-            : (_tokenB, _tokenA);
-
-        require(
-            token0 != ZERO_ADDRESS,
-            'ZERO_ADDRESS'
         );
     }
 
@@ -1073,39 +1070,6 @@ contract SwapsRouter {
             _tokenB,
             PAIR
         );
-    }
-
-    function _pairFor(
-        address _factory,
-        address _tokenA,
-        address _tokenB,
-        address _implementation
-    )
-        internal
-        pure
-        returns (address predicted)
-    {
-        (address token0, address token1) = _tokenA < _tokenB
-            ? (_tokenA, _tokenB)
-            : (_tokenB, _tokenA);
-
-        bytes32 salt = keccak256(
-            abi.encodePacked(
-                token0,
-                token1
-            )
-        );
-
-        assembly {
-            let ptr := mload(0x40)
-            mstore(ptr, 0x3d602d80600a3d3981f3363d3d373d3d3d363d73000000000000000000000000)
-            mstore(add(ptr, 0x14), shl(0x60, _implementation))
-            mstore(add(ptr, 0x28), 0x5af43d82803e903d91602b57fd5bf3ff00000000000000000000000000000000)
-            mstore(add(ptr, 0x38), shl(0x60, _factory))
-            mstore(add(ptr, 0x4c), salt)
-            mstore(add(ptr, 0x6c), keccak256(ptr, 0x37))
-            predicted := keccak256(add(ptr, 0x37), 0x55)
-        }
     }
 
     function getAmountsOut(
@@ -1155,7 +1119,11 @@ contract SwapsRouter {
             _tokenB
         );
 
-        (uint256 reserve0, uint256 reserve1,) = ISwapsPair(
+        (
+            uint256 reserve0,
+            uint256 reserve1,
+
+        ) = ISwapsPair(
             _pairFor(
                 _factory,
                 _tokenA,
@@ -1167,81 +1135,6 @@ contract SwapsRouter {
         (reserveA, reserveB) = _tokenA == token0
             ? (reserve0, reserve1)
             : (reserve1, reserve0);
-    }
-
-    function quote(
-        uint256 _amountA,
-        uint256 _reserveA,
-        uint256 _reserveB
-    )
-        public
-        pure
-        returns (uint256 amountB)
-    {
-        require(
-            _amountA > 0,
-            'INSUFFICIENT_AMOUNT'
-        );
-
-        require(
-            _reserveA > 0 && _reserveB > 0,
-            'INSUFFICIENT_LIQUIDITY'
-        );
-
-        amountB = _amountA
-            * _reserveB
-            / _reserveA;
-    }
-
-    function getAmountOut(
-        uint256 _amountIn,
-        uint256 _reserveIn,
-        uint256 _reserveOut
-    )
-        public
-        pure
-        returns (uint256 amountOut)
-    {
-        require(
-            _amountIn > 0,
-            'INSUFFICIENT_INPUT_AMOUNT'
-        );
-
-        require(
-            _reserveIn > 0 && _reserveOut > 0,
-            'INSUFFICIENT_LIQUIDITY'
-        );
-
-        uint256 amountInWithFee = _amountIn * 997;
-        uint256 numerator = amountInWithFee * _reserveOut;
-        uint256 denominator = _reserveIn * 1000 + amountInWithFee;
-
-        amountOut = numerator / denominator;
-    }
-
-    function getAmountIn(
-        uint256 _amountOut,
-        uint256 _reserveIn,
-        uint256 _reserveOut
-    )
-        public
-        pure
-        returns (uint256 amountIn)
-    {
-        require(
-            _amountOut > 0,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
-        );
-
-        require(
-            _reserveIn > 0 && _reserveOut > 0,
-            'INSUFFICIENT_LIQUIDITY'
-        );
-
-        uint256 numerator = _reserveIn * _amountOut * 1000;
-        uint256 denominator = (_reserveOut - _amountOut) * 997;
-
-        amountIn = numerator / denominator + 1;
     }
 
     function _getAmountsOut(
@@ -1258,12 +1151,19 @@ contract SwapsRouter {
             'INVALID_PATH'
         );
 
-        amounts = new uint256[](_path.length);
+        amounts = new uint256[](
+            _path.length
+        );
+
         amounts[0] = _amountIn;
 
         for (uint256 i; i < _path.length - 1; i++) {
 
-            (uint256 reserveIn, uint256 reserveOut) = getReserves(
+            (
+                uint256 reserveIn,
+                uint256 reserveOut
+
+            ) = getReserves(
                 _factory,
                 _path[i],
                 _path[i + 1]
@@ -1299,7 +1199,11 @@ contract SwapsRouter {
 
         for (uint256 i = _path.length - 1; i > 0; i--) {
 
-            (uint256 reserveIn, uint256 reserveOut) = getReserves(
+            (
+                uint256 reserveIn,
+                uint256 reserveOut
+
+            ) = getReserves(
                 _factory,
                 _path[i - 1],
                 _path[i]
@@ -1315,6 +1219,7 @@ contract SwapsRouter {
 }
 
 contract RouterCodeCheck {
+
     function routerCodeHash()
         external
         pure

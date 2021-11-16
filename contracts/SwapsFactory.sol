@@ -54,16 +54,6 @@ contract SwapsFactory {
         return allPairs.length;
     }
 
-    function pairCodeHash()
-        external
-        pure
-        returns (bytes32)
-    {
-        return keccak256(
-            type(SwapsPair).creationCode
-        );
-    }
-
     function createPair(
         address _tokenA,
         address _tokenB
@@ -169,6 +159,7 @@ contract SwapsFactory {
 }
 
 contract FactoryCodeCheck {
+
     function factoryCodeHash()
         external
         pure
@@ -176,6 +167,16 @@ contract FactoryCodeCheck {
     {
         return keccak256(
             type(SwapsFactory).creationCode
+        );
+    }
+
+    function pairCodeHash()
+        external
+        pure
+        returns (bytes32)
+    {
+        return keccak256(
+            type(SwapsPair).creationCode
         );
     }
 }

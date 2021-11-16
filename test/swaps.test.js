@@ -1134,7 +1134,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it.skip("allows the spender claim the allowance signed by the owner", async function () {
+        /*it.skip("allows the spender claim the allowance signed by the owner", async function () {
 
             const pairAddress = await router.pairFor(
                 factory.address,
@@ -1213,7 +1213,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 ),
                 'ERC20Permit: invalid signature'
             );
-        });
+        });*/
 
         it("should allow to perform skim() operation retrieve stuck tokens", async () => {
 
