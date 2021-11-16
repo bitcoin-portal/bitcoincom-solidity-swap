@@ -11,8 +11,8 @@ contract SwapsPair is SwapsERC20 {
 
     uint224 constant Q112 = 2 ** 112;
     uint112 constant UINT112_MAX = 2 ** 112 - 1;
-
     uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
+
     bytes4 private constant SELECTOR = bytes4(
         keccak256(bytes('transfer(address,uint256)'))
     );
@@ -34,7 +34,7 @@ contract SwapsPair is SwapsERC20 {
     modifier lock() {
         require(
             unlocked == 1,
-            'LOCKED'
+            'SwapsPair: LOCKED'
         );
         unlocked = 0;
         _;
@@ -78,7 +78,7 @@ contract SwapsPair is SwapsERC20 {
                     data, (bool)
                 )
             ),
-            'TRANSFER_FAILED'
+            'SwapsPair: TRANSFER_FAILED'
         );
     }
 
@@ -137,7 +137,7 @@ contract SwapsPair is SwapsERC20 {
         require(
             _balance0 <= UINT112_MAX &&
             _balance1 <= UINT112_MAX,
-            'OVERFLOW'
+            'SwapsPair: OVERFLOW'
         );
 
         uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
@@ -453,10 +453,10 @@ contract SwapsPair is SwapsERC20 {
     )
         pure
         internal
-        returns (uint224)
+        returns (uint224 z)
     {
         unchecked {
-            return uint224(_y) * Q112;
+            z = uint224(_y) * Q112;
         }
     }
 
@@ -466,10 +466,10 @@ contract SwapsPair is SwapsERC20 {
     )
         pure
         internal
-        returns (uint224)
+        returns (uint224 z)
     {
         unchecked {
-            return _x / uint224(_y);
+            z = _x / uint224(_y);
         }
     }
 
@@ -479,9 +479,9 @@ contract SwapsPair is SwapsERC20 {
     )
         internal
         pure
-        returns (uint256)
+        returns (uint256 z)
     {
-        return _x < _y ? _x : _y;
+        z = _x < _y ? _x : _y;
     }
 
     function sqrt(

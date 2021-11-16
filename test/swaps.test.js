@@ -48,6 +48,7 @@ const getPermitDigest = async (
     nonce,
     deadline,
 ) => {
+
     const DOMAIN_SEPARATOR = await token.DOMAIN_SEPARATOR();
     const PERMIT_TYPEHASH = await token.PERMIT_TYPEHASH();
 
@@ -77,7 +78,7 @@ const getPermitDigest = async (
                             PERMIT_TYPEHASH,
                             approve.owner,
                             approve.spender,
-                            approve.amount,
+                            approve.value,
                             nonce,
                             deadline
                         ],
@@ -146,21 +147,6 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             assert.equal(
                 feeToSetterAddress,
                 owner
-            );
-        });
-
-        it.skip("should have correct pairCodeHash value", async () => {
-            const pairCodeHash = await factory.pairCodeHash();
-
-            // during coverage-test
-            // const expectedValue = '0x01ada0920ed343dcff2aa5c776daf53affb255ea2841b36cec8629f75f9b1c50';
-
-            // during regular-test
-            const expectedValue = '0xb3af544ce58a3dc93aab06fce6c9b92352de846f927541ded3bb844ca0d64e73';
-
-            assert.equal(
-                pairCodeHash,
-                expectedValue
             );
         });
 
@@ -1108,6 +1094,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 'ERC20Permit: invalid signature'
             );
         });
+
         it("revert if invalid deadline", async function () {
 
             const pairAddress = await router.pairFor(
@@ -1147,61 +1134,6 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it.skip("revert if invalid permit()", async function () {
-
-            const pairAddress = await router.pairFor(
-                factory.address,
-                token.address,
-                weth.address
-            );
-
-            pair = await SwapsPair.at(
-                pairAddress
-            );
-
-            const approve = {
-                owner: owner,
-                spender: bob,
-                value: 100,
-            }
-
-            // deadline as much as you want in the future
-            const deadline = 100000000000000;
-
-            // Get the user's nonce
-            const name = await pair.name();
-            const nonce = await pair.nonces(owner);
-
-
-            // Get the EIP712 digest
-            const digest = await getPermitDigest(
-                pair,
-                approve,
-                nonce,
-                deadline
-            );
-
-            const ownerPrivateKey = 'b25421d6dabd6e9119c45c4daf4ca4f8f86bd6761cc20c095906073da7c02471';
-
-            const { v, r, s } = sign(
-                digest,
-                ownerPrivateKey
-            );
-
-            await catchRevert(
-                pair.permit(
-                    '0x0000000000000000000000000000000000000000',
-                    approve.spender,
-                    approve.value,
-                    deadline,
-                    '0x99',
-                    r,
-                    s
-                ),
-                'ERC20Permit: invalid signature'
-            );
-        });
-
         it.skip("allows the spender claim the allowance signed by the owner", async function () {
 
             const pairAddress = await router.pairFor(
@@ -1217,29 +1149,24 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             const approve = {
                 owner: owner,
                 spender: bob,
-                value: 100,
+                value: new BN("100"),
             }
 
-            // deadline as much as you want in the future
-            const deadline = 100000000000000;
+            const deadline = new BN("100000000000000");
 
-            // Get the user's nonce
             const name = await pair.name();
             const nonce = await pair.nonces(owner);
 
-            // Get the EIP712 digest
-            const digest = getPermitDigest(
+            const digest = await getPermitDigest(
                 pair,
                 approve,
                 nonce,
                 deadline
             );
 
-            // Sign it
-            // NOTE: Using web3.eth.sign will hash the message internally again which
-            // we do not want, so we're manually signing here
+            console.log(digest, 'digest');
 
-            const ownerPrivateKey = 'b25421d6dabd6e9119c45c4daf4ca4f8f86bd6761cc20c095906073da7c02471';
+            const ownerPrivateKey = '9450712552098aa8553c5a4f9a7c0d206588a09198135782bc7101f72f0ed25d';
 
             const { v, r, s } = sign(
                 digest,
@@ -1257,9 +1184,8 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 s
             );
 
-            const event = receipt.logs[0]
+            const event = receipt.logs[0];
 
-            // It worked!
             assert.equal(
                 event.event,
                 'Approval'
@@ -1274,9 +1200,6 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 await token.allowance(approve.owner, approve.spender),
                 approve.value
             );
-
-            // Re-using the same sig doesn't work since the nonce has been incremented
-            // on the contract level for replay-protection
 
             await catchRevert(
                 token.permit(
