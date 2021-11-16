@@ -15,8 +15,8 @@ interface ISwapsFactory {
         returns (address);
 
     function getPair(
-        address tokenA,
-        address tokenB
+        address _tokenA,
+        address _tokenB
     )
         external
         view
@@ -33,8 +33,8 @@ interface ISwapsFactory {
         returns (uint256);
 
     function createPair(
-        address tokenA,
-        address tokenB
+        address _tokenA,
+        address _tokenB
     )
         external
         returns (address pair);

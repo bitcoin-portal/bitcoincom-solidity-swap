@@ -25,38 +25,38 @@ interface ISwapsERC20 {
         returns (uint256);
 
     function balanceOf(
-        address owner
+        address _owner
     )
         external
         view
         returns (uint256);
 
     function allowance(
-        address owner,
-        address spender
+        address _owner,
+        address _spender
     )
         external
         view
         returns (uint256);
 
     function approve(
-        address spender,
-        uint256 value
+        address _spender,
+        uint256 _value
     )
         external
         returns (bool);
 
     function transfer(
-        address to,
-        uint256 value
+        address _to,
+        uint256 _value
     )
         external
         returns (bool);
 
     function transferFrom(
-        address from,
-        address to,
-        uint256 value
+        address _from,
+        address _to,
+        uint256 _value
     )
         external
         returns (bool);
@@ -72,20 +72,20 @@ interface ISwapsERC20 {
         returns (bytes32);
 
     function nonces(
-        address owner
+        address _owner
     )
         external
         view
-        returns (uint);
+        returns (uint256);
 
     function permit(
-        address owner,
-        address spender,
-        uint value,
-        uint deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
+        address _owner,
+        address _spender,
+        uint256 _value,
+        uint256 _deadline,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
     )
         external;
 }

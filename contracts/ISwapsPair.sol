@@ -48,28 +48,28 @@ interface ISwapsPair is ISwapsERC20 {
     function kLast()
         external
         view
-        returns (uint);
+        returns (uint256);
 
     function mint(
-        address to
+        address _to
     )
         external
-        returns (uint liquidity);
+        returns (uint256 liquidity);
 
     function burn(
-        address to
+        address _to
     )
         external
         returns (
-            uint amount0,
-            uint amount1
+            uint256 amount0,
+            uint256 amount1
         );
 
     function swap(
-        uint amount0Out,
-        uint amount1Out,
-        address to,
-        bytes calldata data
+        uint256 _amount0Out,
+        uint256 _amount1Out,
+        address _to,
+        bytes calldata _data
     )
         external;
 
