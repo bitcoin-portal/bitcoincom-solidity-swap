@@ -8,7 +8,7 @@ import "./ISwapsFactory.sol";
 import "./ISwapsPair.sol";
 import "./SwapsHelper.sol";
 
-contract SwapsRouter is SwapsHelper  {
+contract SwapsRouter is SwapsHelper {
 
     address public immutable FACTORY;
     address public immutable WETH;
