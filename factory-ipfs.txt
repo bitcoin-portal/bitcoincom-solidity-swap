@@ -1,0 +1,28 @@
+Metadata of "swapsfactory" was published successfully.
+
+IERC20.sol :
+ipfs://QmYgL63ucNxpqL4wDQaGnd77sDHVgbcJsM9MZ5YtCePX5N
+
+ISwapsCallee.sol :
+ipfs://QmZABs47YDf1gPs2iFYeQxUjVuk8Q5Uym1JhhkoSKLbUz8
+
+ISwapsERC20.sol :
+ipfs://QmNQwXRLe7moMUyvFwM7WUd8Q7ckkzmR2QSVLLg9D5obCq
+
+ISwapsFactory.sol :
+ipfs://QmTA2q5DkX8QzVqZs1Fb2ZeSwgVG6icaLRsZQWNvAfjDS9
+
+ISwapsPair.sol :
+ipfs://QmZQNLLECJ3yQhVMYfv7psJs9UNzuqakNkgnNH8WQUQmaM
+
+SwapsERC20.sol :
+ipfs://QmWbegNpMm7cTfYS4ykGTHD2oSXEVHV9tAzJNAiwTeh9Zo
+
+SwapsFactory.sol :
+ipfs://QmUdWxZMd1932YanonG1HQsxx91KGTcT3JKA8tKUoZ7ZwB
+
+SwapsPair.sol :
+ipfs://Qmb466WMSoJHBRSmp9UhusqtoGfEwXNozjdyKSMnkwmUqL
+
+metadata.json :
+ipfs://QmYHkkjkSptnT4ranU6QEEeSfTpNVEqmAm3gAfmUmL5hk9
