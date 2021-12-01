@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 
 contract SwapsHelper {
 
-    uint256 constant UINT256_MAX = 2 ** 256 - 1;
+    uint256 constant UINT256_MAX = type(uint256).max;
     address constant ZERO_ADDRESS = address(0);
 
     function sortTokens(

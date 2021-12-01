@@ -9,7 +9,7 @@ contract SwapsERC20 {
     uint8 public constant decimals = 18;
 
     address constant ZERO_ADDRESS = address(0);
-    uint256 constant UINT256_MAX = 2 ** 256 - 1;
+    uint256 constant UINT256_MAX = type(uint256).max;
 
     uint256 public totalSupply;
 

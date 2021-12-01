@@ -10,7 +10,7 @@ import "./SwapsERC20.sol";
 contract SwapsPair is SwapsERC20 {
 
     uint224 constant Q112 = 2 ** 112;
-    uint112 constant UINT112_MAX = 2 ** 112 - 1;
+    uint112 constant UINT112_MAX = type(uint112).max;
     uint256 public constant MINIMUM_LIQUIDITY = 10 ** 3;
 
     bytes4 private constant SELECTOR = bytes4(
