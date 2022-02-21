@@ -34,7 +34,7 @@ contract SwapsPair is SwapsERC20 {
     modifier lock() {
         require(
             unlocked == 1,
-            'SwapsPair: LOCKED'
+            "SwapsPair: LOCKED"
         );
         unlocked = 0;
         _;
@@ -76,7 +76,7 @@ contract SwapsPair is SwapsERC20 {
     {
         require(
             factory == ZERO_ADDRESS,
-            'SwapsPair: ALREADY_INITIALIZED'
+            "SwapsPair: ALREADY_INITIALIZED"
         );
 
         token0 = _token0;
@@ -112,7 +112,7 @@ contract SwapsPair is SwapsERC20 {
         require(
             _balance0 <= UINT112_MAX &&
             _balance1 <= UINT112_MAX,
-            'SwapsPair: OVERFLOW'
+            "SwapsPair: OVERFLOW"
         );
 
         uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
@@ -209,7 +209,7 @@ contract SwapsPair is SwapsERC20 {
 
         require(
             liquidity > 0,
-            'INSUFFICIENT_LIQUIDITY_MINTED'
+            "INSUFFICIENT_LIQUIDITY_MINTED"
         );
 
         _mint(
@@ -271,7 +271,7 @@ contract SwapsPair is SwapsERC20 {
         require(
             amount0 > 0 &&
             amount1 > 0,
-            'INSUFFICIENT_LIQUIDITY_BURNED'
+            "INSUFFICIENT_LIQUIDITY_BURNED"
         );
 
         _burn(
@@ -323,7 +323,7 @@ contract SwapsPair is SwapsERC20 {
         require(
             _amount0Out > 0 ||
             _amount1Out > 0,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "INSUFFICIENT_OUTPUT_AMOUNT"
         );
 
         (
@@ -335,7 +335,7 @@ contract SwapsPair is SwapsERC20 {
         require(
             _amount0Out < _reserve0 &&
             _amount1Out < _reserve1,
-            'INSUFFICIENT_LIQUIDITY'
+            "INSUFFICIENT_LIQUIDITY"
         );
 
         uint256 balance0;
@@ -370,7 +370,7 @@ contract SwapsPair is SwapsERC20 {
         require(
             _amount0In > 0 ||
             _amount1In > 0,
-            'INSUFFICIENT_INPUT_AMOUNT'
+            "INSUFFICIENT_INPUT_AMOUNT"
         );
 
         {
@@ -501,7 +501,7 @@ contract SwapsPair is SwapsERC20 {
                     data, (bool)
                 )
             ),
-            'SwapsPair: TRANSFER_FAILED'
+            "SwapsPair: TRANSFER_FAILED"
         );
     }
 }

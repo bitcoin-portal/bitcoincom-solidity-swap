@@ -63,7 +63,7 @@ contract SwapsFactory {
     {
         require(
             _tokenA != _tokenB,
-            'SwapsFactory: IDENTICAL'
+            "SwapsFactory: IDENTICAL"
         );
 
         (address token0, address token1) = _tokenA < _tokenB
@@ -72,12 +72,12 @@ contract SwapsFactory {
 
         require(
             token0 != ZERO_ADDRESS,
-            'SwapsFactory: ZERO_ADDRESS'
+            "SwapsFactory: ZERO_ADDRESS"
         );
 
         require(
             getPair[token0][token1] == ZERO_ADDRESS,
-            'SwapsFactory: PAIR_ALREADY_EXISTS'
+            "SwapsFactory: PAIR_ALREADY_EXISTS"
         );
 
         bytes32 salt = keccak256(
@@ -138,7 +138,7 @@ contract SwapsFactory {
     {
         require(
             msg.sender == feeToSetter,
-            'SwapsFactory: FORBIDDEN'
+            "SwapsFactory: FORBIDDEN"
         );
 
         feeTo = _feeTo;
@@ -151,7 +151,7 @@ contract SwapsFactory {
     {
         require(
             msg.sender == feeToSetter,
-            'SwapsFactory: FORBIDDEN'
+            "SwapsFactory: FORBIDDEN"
         );
 
         feeToSetter = _feeToSetter;

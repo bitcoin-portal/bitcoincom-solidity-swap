@@ -20,7 +20,7 @@ contract SwapsHelper {
     {
         require(
             _tokenA != _tokenB,
-            'IDENTICAL_ADDRESSES'
+            "SwapsHelper: IDENTICAL_ADDRESSES"
         );
 
         (token0, token1) = _tokenA < _tokenB
@@ -29,7 +29,7 @@ contract SwapsHelper {
 
         require(
             token0 != ZERO_ADDRESS,
-            'ZERO_ADDRESS'
+            "SwapsHelper: ZERO_ADDRESS"
         );
     }
 
@@ -44,12 +44,12 @@ contract SwapsHelper {
     {
         require(
             _amountA > 0,
-            'INSUFFICIENT_AMOUNT'
+            "SwapsHelper: INSUFFICIENT_AMOUNT"
         );
 
         require(
             _reserveA > 0 && _reserveB > 0,
-            'INSUFFICIENT_LIQUIDITY'
+            "SwapsHelper: INSUFFICIENT_LIQUIDITY"
         );
 
         amountB = _amountA
@@ -68,12 +68,12 @@ contract SwapsHelper {
     {
         require(
             _amountIn > 0,
-            'INSUFFICIENT_INPUT_AMOUNT'
+            "SwapsHelper: INSUFFICIENT_INPUT_AMOUNT"
         );
 
         require(
             _reserveIn > 0 && _reserveOut > 0,
-            'INSUFFICIENT_LIQUIDITY'
+            "SwapsHelper: INSUFFICIENT_LIQUIDITY"
         );
 
         uint256 amountInWithFee = _amountIn * 997;
@@ -94,13 +94,13 @@ contract SwapsHelper {
     {
         require(
             _amountOut > 0,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "SwapsHelper: INSUFFICIENT_OUTPUT_AMOUNT"
         );
 
         require(
             _reserveIn > 0 &&
             _reserveOut > 0,
-            'INSUFFICIENT_LIQUIDITY'
+            "SwapsHelper: INSUFFICIENT_LIQUIDITY"
         );
 
         uint256 numerator = _reserveIn * _amountOut * 1000;
@@ -113,7 +113,7 @@ contract SwapsHelper {
     bytes4 constant TRANSFER = bytes4(
         keccak256(
             bytes(
-                'transfer(address,uint256)'
+                "transfer(address,uint256)"
             )
         )
     );
@@ -121,7 +121,7 @@ contract SwapsHelper {
     bytes4 constant TRANSFER_FROM = bytes4(
         keccak256(
             bytes(
-                'transferFrom(address,address,uint256)'
+                "transferFrom(address,address,uint256)"
             )
         )
     );
@@ -147,7 +147,7 @@ contract SwapsHelper {
                     data, (bool)
                 )
             ),
-            'TRANSFER_FAILED'
+            "SwapsHelper: TRANSFER_FAILED"
         );
     }
 
@@ -174,7 +174,7 @@ contract SwapsHelper {
                     data, (bool)
                 )
             ),
-            'TRANSFER_FROM_FAILED'
+            "SwapsHelper: TRANSFER_FROM_FAILED"
         );
     }
 
@@ -190,7 +190,7 @@ contract SwapsHelper {
 
         require(
             success == true,
-            'ETH_TRANSFER_FAILED'
+            "SwapsHelper: ETH_TRANSFER_FAILED"
         );
     }
 

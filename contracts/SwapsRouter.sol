@@ -19,7 +19,7 @@ contract SwapsRouter is SwapsHelper {
     ) {
         require(
             _deadline >= block.timestamp,
-            'SwapsRouter: DEADLINE_EXPIRED'
+            "SwapsRouter: DEADLINE_EXPIRED"
         );
         _;
     }
@@ -39,7 +39,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             msg.sender == WETH,
-            'SwapsRouter: INVALID_SENDER'
+            "SwapsRouter: INVALID_SENDER"
         );
     }
 
@@ -88,7 +88,7 @@ contract SwapsRouter is SwapsHelper {
 
             require(
                 amountBOptimal >= _amountBMin,
-                'INSUFFICIENT_B_AMOUNT'
+                "SwapsRouter: INSUFFICIENT_B_AMOUNT"
             );
 
             return (
@@ -109,7 +109,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amountAOptimal >= _amountAMin,
-            'INSUFFICIENT_A_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_A_AMOUNT"
         );
 
         return (
@@ -279,12 +279,12 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amountA >= _amountAMin,
-            'INSUFFICIENT_A_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_A_AMOUNT"
         );
 
         require(
             amountB >= _amountBMin,
-            'INSUFFICIENT_B_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_B_AMOUNT"
         );
     }
 
@@ -571,7 +571,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amounts[amounts.length - 1] >= _amountOutMin,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
 
         _safeTransferFrom(
@@ -612,7 +612,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amounts[0] <= _amountInMax,
-            'EXCESSIVE_INPUT_AMOUNT'
+            "SwapsRouter: EXCESSIVE_INPUT_AMOUNT"
         );
 
         _safeTransferFrom(
@@ -647,7 +647,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path[0] == WETH,
-            'INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         amounts = _getAmountsOut(
@@ -658,7 +658,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amounts[amounts.length - 1] >= _amountOutMin,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
 
         IWETH(WETH).deposit{
@@ -697,7 +697,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path[_path.length - 1] == WETH,
-            'INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         amounts = _getAmountsIn(
@@ -708,7 +708,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amounts[0] <= _amountInMax,
-            'EXCESSIVE_INPUT_AMOUNT'
+            "SwapsRouter: EXCESSIVE_INPUT_AMOUNT"
         );
 
         _safeTransferFrom(
@@ -752,7 +752,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path[_path.length - 1] == WETH,
-            'INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         amounts = _getAmountsOut(
@@ -763,7 +763,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amounts[amounts.length - 1] >= _amountOutMin,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
 
         _safeTransferFrom(
@@ -807,7 +807,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path[0] == WETH,
-            'INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         amounts = _getAmountsIn(
@@ -818,7 +818,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amounts[0] <= msg.value,
-            'EXCESSIVE_INPUT_AMOUNT'
+            "SwapsRouter: EXCESSIVE_INPUT_AMOUNT"
         );
 
         IWETH(WETH).deposit{
@@ -952,7 +952,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             IERC20(_path[_path.length - 1]).balanceOf(_to) - balanceBefore >= _amountOutMin,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
     }
 
@@ -968,7 +968,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path[0] == WETH,
-            'INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         uint256 amountIn = msg.value;
@@ -1000,7 +1000,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             IERC20(_path[_path.length - 1]).balanceOf(_to) - balanceBefore >= _amountOutMin,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
     }
 
@@ -1016,7 +1016,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path[_path.length - 1] == WETH,
-            'SwapsRouter: INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         _safeTransferFrom(
@@ -1042,7 +1042,7 @@ contract SwapsRouter is SwapsHelper {
 
         require(
             amountOut >= _amountOutMin,
-            'INSUFFICIENT_OUTPUT_AMOUNT'
+            "SwapsRouter: INSUFFICIENT_OUTPUT_AMOUNT"
         );
 
         IWETH(WETH).withdraw(
@@ -1148,7 +1148,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path.length >= 2,
-            'INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         amounts = new uint256[](
@@ -1188,7 +1188,7 @@ contract SwapsRouter is SwapsHelper {
     {
         require(
             _path.length >= 2,
-            'INVALID_PATH'
+            "SwapsRouter: INVALID_PATH"
         );
 
         amounts = new uint256[](
