@@ -989,8 +989,6 @@ contract SwapsRouter is SwapsHelper {
             )
         );
 
-        delete amountIn;
-
         uint256 balanceBefore = IERC20(_path[_path.length - 1]).balanceOf(_to);
 
         _swapSupportingFeeOnTransferTokens(

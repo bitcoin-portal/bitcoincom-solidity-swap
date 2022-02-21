@@ -496,7 +496,7 @@ contract SwapsPair is SwapsERC20 {
         );
 
         require(
-            success == true && (
+            success && (
                 data.length == 0 || abi.decode(
                     data, (bool)
                 )
