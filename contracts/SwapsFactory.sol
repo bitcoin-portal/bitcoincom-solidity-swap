@@ -26,6 +26,10 @@ contract SwapsFactory {
     constructor(
         address _feeToSetter
     ) {
+        if (_feeToSetter == ZERO_ADDRESS) {
+            revert("SwapsFactory: INVALID_INPUT");
+        }
+
         feeToSetter = _feeToSetter;
         feeTo = _feeToSetter;
 
