@@ -1312,7 +1312,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             assert.equal(
                 symbol,
-                "VERSE-LP"
+                "VERSE-X"
             );
         });
 
