@@ -141,6 +141,11 @@ contract SwapsFactory {
             'SwapsFactory: FORBIDDEN'
         );
 
+        require(
+            _feeTo != ZERO_ADDRESS,
+            'SwapsFactory: ZERO_ADDRESS'
+        );
+
         feeTo = _feeTo;
     }
 
@@ -152,6 +157,11 @@ contract SwapsFactory {
         require(
             msg.sender == feeToSetter,
             'SwapsFactory: FORBIDDEN'
+        );
+
+        require(
+            _feeToSetter != ZERO_ADDRESS,
+            'SwapsFactory: ZERO_ADDRESS'
         );
 
         feeToSetter = _feeToSetter;
