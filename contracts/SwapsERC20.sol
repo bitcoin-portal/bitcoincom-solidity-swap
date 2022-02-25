@@ -4,8 +4,8 @@ pragma solidity ^0.8.9;
 
 contract SwapsERC20 {
 
-    string public constant name = 'Bitcoin.com Swaps';
-    string public constant symbol = 'VERSE-LP';
+    string public constant name = 'Verse Exchange';
+    string public constant symbol = 'VERSE-X';
     uint8 public constant decimals = 18;
 
     address constant ZERO_ADDRESS = address(0);
