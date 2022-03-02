@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BCOM
 
-pragma solidity ^0.8.9;
+pragma solidity =0.8.12;
 
 interface IWETH {
 
