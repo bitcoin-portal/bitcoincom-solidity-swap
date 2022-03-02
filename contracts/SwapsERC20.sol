@@ -4,8 +4,8 @@ pragma solidity =0.8.12;
 
 contract SwapsERC20 {
 
-    string public constant name = 'Bitcoin.com Swaps';
-    string public constant symbol = 'BCOM-S';
+    string public constant name = "Bitcoin.com Swaps";
+    string public constant symbol = "BCOM-S";
     uint8 public constant decimals = 18;
 
     address constant ZERO_ADDRESS = address(0);
@@ -37,9 +37,9 @@ contract SwapsERC20 {
     constructor() {
         DOMAIN_SEPARATOR = keccak256(
             abi.encode(
-                keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)'),
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
                 keccak256(bytes(name)),
-                keccak256(bytes('1')),
+                keccak256(bytes("1")),
                 block.chainid,
                 address(this)
             )
@@ -192,12 +192,12 @@ contract SwapsERC20 {
     {
         require(
             _deadline >= block.timestamp,
-            'PERMIT_CALL_EXPIRED'
+            "PERMIT_CALL_EXPIRED"
         );
 
         bytes32 digest = keccak256(
             abi.encodePacked(
-                '\x19\x01',
+                "\x19\x01",
                 DOMAIN_SEPARATOR,
                 keccak256(
                     abi.encode(
@@ -222,7 +222,7 @@ contract SwapsERC20 {
         require(
             recoveredAddress != ZERO_ADDRESS &&
             recoveredAddress == _owner,
-            'INVALID_SIGNATURE'
+            "SwapsERC20: INVALID_SIGNATURE"
         );
 
         _approve(
