@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BCOM
 
-pragma solidity ^0.8.9;
+pragma solidity =0.8.12;
 
 import "./ISwapsPair.sol";
 import "./SwapsPair.sol";
@@ -26,6 +26,10 @@ contract SwapsFactory {
     constructor(
         address _feeToSetter
     ) {
+        if (_feeToSetter == ZERO_ADDRESS) {
+            revert("SwapsFactory: INVALID_INPUT");
+        }
+
         feeToSetter = _feeToSetter;
         feeTo = _feeToSetter;
 
@@ -141,6 +145,11 @@ contract SwapsFactory {
             "SwapsFactory: FORBIDDEN"
         );
 
+        require(
+            _feeTo != ZERO_ADDRESS,
+            'SwapsFactory: ZERO_ADDRESS'
+        );
+
         feeTo = _feeTo;
     }
 
@@ -152,6 +161,11 @@ contract SwapsFactory {
         require(
             msg.sender == feeToSetter,
             "SwapsFactory: FORBIDDEN"
+        );
+
+        require(
+            _feeToSetter != ZERO_ADDRESS,
+            'SwapsFactory: ZERO_ADDRESS'
         );
 
         feeToSetter = _feeToSetter;

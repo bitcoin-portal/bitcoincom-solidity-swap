@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BCOM
 
-pragma solidity ^0.8.9;
+pragma solidity =0.8.12;
 
 contract SwapsHelper {
 
@@ -142,7 +142,7 @@ contract SwapsHelper {
         );
 
         require(
-            success == true && (
+            success && (
                 data.length == 0 || abi.decode(
                     data, (bool)
                 )
@@ -169,7 +169,7 @@ contract SwapsHelper {
         );
 
         require(
-            success == true && (
+            success && (
                 data.length == 0 || abi.decode(
                     data, (bool)
                 )
@@ -189,7 +189,7 @@ contract SwapsHelper {
         }(new bytes(0));
 
         require(
-            success == true,
+            success,
             "SwapsHelper: ETH_TRANSFER_FAILED"
         );
     }

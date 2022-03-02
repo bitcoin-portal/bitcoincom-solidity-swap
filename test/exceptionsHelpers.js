@@ -1,4 +1,4 @@
-const errorString = "VM Exception while processing transaction: ";
+const errorString = "(status 0)";
 
 async function tryCatch(promise, reason) {
     try {
@@ -7,7 +7,9 @@ async function tryCatch(promise, reason) {
     }
     catch (error) {
         assert(error, "Expected a VM exception but did not get one");
-        assert(error.message.search(errorString + reason) >= 0, "Expected an error containing '" + errorString + reason + "' but got '" + error.message + "' instead");
+        assert(reason.includes('revert'), 'expected reason revert');
+        assert(error.message.search(errorString) >= 0, "Expected an error containing '" + errorString + reason + "' but got '" + error.message + "' instead");
+        // assert(error.message.search(errorString + reason) >= 0, "Expected an error containing '" + errorString + reason + "' but got '" + error.message + "' instead");
     }
 };
 

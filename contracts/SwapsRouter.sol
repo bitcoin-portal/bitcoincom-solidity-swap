@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BCOM
 
-pragma solidity ^0.8.9;
+pragma solidity =0.8.12;
 
 import "./IWETH.sol";
 import "./IERC20.sol";
@@ -103,8 +103,9 @@ contract SwapsRouter is SwapsHelper {
             reserveA
         );
 
-        assert(
-            amountAOptimal <= _amountADesired
+        require(
+            amountAOptimal <= _amountADesired,
+            "SwapsRouter: INVALID_DESIRED_AMOUNT"
         );
 
         require(
@@ -213,11 +214,12 @@ contract SwapsRouter is SwapsHelper {
             value: amountETH
         }();
 
-        assert(
+        require(
             IWETH(WETH).transfer(
                 pair,
                 amountETH
-            )
+            ),
+            "SwapsRouter: TRANSFER_FAIL"
         );
 
         liquidity = ISwapsPair(pair).mint(_to);
@@ -665,7 +667,7 @@ contract SwapsRouter is SwapsHelper {
             value: amounts[0]
         }();
 
-        assert(
+        require(
             IWETH(WETH).transfer(
                 _pairFor(
                     FACTORY,
@@ -674,7 +676,8 @@ contract SwapsRouter is SwapsHelper {
                     PAIR
                 ),
                 amounts[0]
-            )
+            ),
+            "SwapsRouter: TRANSFER_FAIL"
         );
 
         _swap(
@@ -825,7 +828,7 @@ contract SwapsRouter is SwapsHelper {
             value: amounts[0]
         }();
 
-        assert(
+        require(
             IWETH(WETH).transfer(
                 _pairFor(
                     FACTORY,
@@ -834,7 +837,8 @@ contract SwapsRouter is SwapsHelper {
                     PAIR
                 ),
                 amounts[0]
-            )
+            ),
+            "SwapsRouter: TRANSFER_FAIL"
         );
 
         _swap(
@@ -977,7 +981,7 @@ contract SwapsRouter is SwapsHelper {
             value: amountIn
         }();
 
-        assert(
+        require(
             IWETH(WETH).transfer(
                 _pairFor(
                     FACTORY,
@@ -986,10 +990,9 @@ contract SwapsRouter is SwapsHelper {
                     PAIR
                 ),
                 amountIn
-            )
+            ),
+            "SwapsRouter: TRANSFER_FAIL"
         );
-
-        delete amountIn;
 
         uint256 balanceBefore = IERC20(_path[_path.length - 1]).balanceOf(_to);
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BCOM
 
-pragma solidity ^0.8.9;
+pragma solidity =0.8.12;
 
 import "./IERC20.sol";
 import "./ISwapsFactory.sol";
@@ -423,6 +423,18 @@ contract SwapsPair is SwapsERC20 {
         );
     }
 
+    function sync()
+        external
+        lock
+    {
+        _update(
+            IERC20(token0).balanceOf(address(this)),
+            IERC20(token1).balanceOf(address(this)),
+            reserve0,
+            reserve1
+        );
+    }
+
     function encode(
         uint112 _y
     )
@@ -496,7 +508,7 @@ contract SwapsPair is SwapsERC20 {
         );
 
         require(
-            success == true && (
+            success && (
                 data.length == 0 || abi.decode(
                     data, (bool)
                 )
