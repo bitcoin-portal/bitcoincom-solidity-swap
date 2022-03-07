@@ -141,7 +141,7 @@ All files            |     89.2 |       60 |    87.91 |    89.46 |              
 ```
 SmartBCH Mainnet Address:
 ```
-0x72ceC1d3987fCe5AC8d94cad1c5069f19f16FEc9
+0x16bc2B187D7C7255b647830C05a6283f2B9A3AF8
 ```
 
 ### Swaps Router
@@ -151,7 +151,7 @@ SmartBCH Mainnet Address:
 ```
 SmartBCH Mainnet Address:
 ```
-0x872301F9655c212033c6533BF0f85b926B0444E3
+0xF13541FaD443a4Bf4160B5c0F46aC5c735a908d3
 ```
 
 ### Swaps Pair
