@@ -1,28 +1,28 @@
 Metadata of "swapsfactory" was published successfully.
 
 IERC20.sol :
-ipfs://QmYgL63ucNxpqL4wDQaGnd77sDHVgbcJsM9MZ5YtCePX5N
+dweb:/ipfs/Qmb848vBqrtieDGhaEugRgv5KGf6WnBb8g351k93VS8tZP
 
 ISwapsCallee.sol :
-ipfs://QmZABs47YDf1gPs2iFYeQxUjVuk8Q5Uym1JhhkoSKLbUz8
+dweb:/ipfs/QmSQpwhihER9hPS38fFaxeSBmJRwSxtqDRKNjxhpJchgez
 
 ISwapsERC20.sol :
-ipfs://QmNQwXRLe7moMUyvFwM7WUd8Q7ckkzmR2QSVLLg9D5obCq
+dweb:/ipfs/QmWBxPy73h1kVvwPsHDXirsSraiCiH26piVJzBJ4ynATnf
 
 ISwapsFactory.sol :
-ipfs://QmTA2q5DkX8QzVqZs1Fb2ZeSwgVG6icaLRsZQWNvAfjDS9
+dweb:/ipfs/QmVvihThsepJwMRU9b8FTMarrKt1TfCUrN6RmJLTVAMzLh
 
 ISwapsPair.sol :
-ipfs://QmZQNLLECJ3yQhVMYfv7psJs9UNzuqakNkgnNH8WQUQmaM
+dweb:/ipfs/QmXKKCTVUouF32xt8PaBHVvHtZNtd3cY7tCzdw8XbarYfv
 
 SwapsERC20.sol :
-ipfs://QmWbegNpMm7cTfYS4ykGTHD2oSXEVHV9tAzJNAiwTeh9Zo
+dweb:/ipfs/QmYbosuECkCtTc95tbC87FVhDraBteAjos2jpeaBG9eiSU
 
 SwapsFactory.sol :
-ipfs://QmUdWxZMd1932YanonG1HQsxx91KGTcT3JKA8tKUoZ7ZwB
+dweb:/ipfs/QmPrdPcCQaRQkJ2HH6skKFjQhGovuM2Eof5WVQjtVvh1aF
 
 SwapsPair.sol :
-ipfs://Qmb466WMSoJHBRSmp9UhusqtoGfEwXNozjdyKSMnkwmUqL
+dweb:/ipfs/QmY8RHZvYLjnz5trkWYn2br6scDRRMnEstk14phA9sCsBP
 
 metadata.json :
-ipfs://QmYHkkjkSptnT4ranU6QEEeSfTpNVEqmAm3gAfmUmL5hk9
+dweb:/ipfs/QmYv36hELLmCHXqiqp1zXFfxB5winVo3Z3k4WJR6cpVcwx

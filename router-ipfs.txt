@@ -1,25 +1,25 @@
 Metadata of "swapsrouter" was published successfully.
 
 IERC20.sol :
-ipfs://QmYgL63ucNxpqL4wDQaGnd77sDHVgbcJsM9MZ5YtCePX5N
+dweb:/ipfs/Qmb848vBqrtieDGhaEugRgv5KGf6WnBb8g351k93VS8tZP
 
 ISwapsERC20.sol :
-ipfs://QmNQwXRLe7moMUyvFwM7WUd8Q7ckkzmR2QSVLLg9D5obCq
+dweb:/ipfs/QmWBxPy73h1kVvwPsHDXirsSraiCiH26piVJzBJ4ynATnf
 
 ISwapsFactory.sol :
-ipfs://QmTA2q5DkX8QzVqZs1Fb2ZeSwgVG6icaLRsZQWNvAfjDS9
+dweb:/ipfs/QmVvihThsepJwMRU9b8FTMarrKt1TfCUrN6RmJLTVAMzLh
 
 ISwapsPair.sol :
-ipfs://QmZQNLLECJ3yQhVMYfv7psJs9UNzuqakNkgnNH8WQUQmaM
+dweb:/ipfs/QmXKKCTVUouF32xt8PaBHVvHtZNtd3cY7tCzdw8XbarYfv
 
 IWETH.sol :
-ipfs://QmaGSzbRxq1bWmeQHXq2CQ7Ay5sdnUNpRCVkqtK4r1hG41
+dweb:/ipfs/QmW7UnJZ6ggzZtcm1vikVjDKmJfiLchUegHz26jhc1nNWf
 
 SwapsHelper.sol :
-ipfs://QmUbmxeocd7U7nPTrJCvU1kLbaNs7gCDu6PmQA1fLoKtRD
+dweb:/ipfs/QmZoe1iYJi8KKnkWiZ6RXpGbYMprMkTQDcGxGCRnSHsuh6
 
-SwapsRouter.sol : 
-ipfs://QmZwpXqVBytTUuRNZi3BWkMGzvak6iNvnkQU7VHREtYiT4
+SwapsRouter.sol :
+dweb:/ipfs/Qmd7z7qiBPamyDaRiiZ3kh8MZ65bfNYZb4E9w1U4ZBhy5B
 
 metadata.json :
-ipfs://QmTPDyKTWBEkXi2cTNqP2yUEVFa6U5kfrwybGNpSbvNA1o
+dweb:/ipfs/Qmd9thBSYjwAsC2reYBWoA6qLrD9MTsBN2kEXPxCQsnJUe
