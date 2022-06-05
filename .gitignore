@@ -96,3 +96,4 @@ uniswap/build/
 weth/build/
 build/
 coverage.json
+.coverage_contracts/
