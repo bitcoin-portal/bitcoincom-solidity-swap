@@ -67,7 +67,7 @@
 		"rimraf": "^3.0.2",
 		"solhint": "^3.3.6",
 		"solidity-ast": "^0.4.25",
-		"solidity-coverage": "^0.7.11",
+		"solidity-coverage": "0.8.0-beta.1",
 		"solidity-docgen": "^0.5.3",
 		"truffle": "^5.4.12",
 		"web3": "^1.3.0",
