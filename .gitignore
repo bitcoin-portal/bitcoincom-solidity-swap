@@ -97,3 +97,4 @@ weth/build/
 build/
 coverage.json
 .coverage_contracts/
+/build
