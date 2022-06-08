@@ -116,11 +116,13 @@ contract SwapsPair is SwapsERC20 {
         );
 
         uint32 blockTimestamp = uint32(block.timestamp % 2 ** 32);
-        uint32 timeElapsed = blockTimestamp - blockTimestampLast;
 
-        if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
-            price0CumulativeLast += uint256(uqdiv(encode(_reserve1), _reserve0)) * timeElapsed;
-            price1CumulativeLast += uint256(uqdiv(encode(_reserve0), _reserve1)) * timeElapsed;
+        unchecked {
+            uint32 timeElapsed = blockTimestamp - blockTimestampLast;
+            if (timeElapsed > 0 && _reserve0 != 0 && _reserve1 != 0) {
+                price0CumulativeLast += uint256(uqdiv(encode(_reserve1), _reserve0)) * timeElapsed;
+                price1CumulativeLast += uint256(uqdiv(encode(_reserve0), _reserve1)) * timeElapsed;
+            }
         }
 
         reserve0 = uint112(_balance0);
