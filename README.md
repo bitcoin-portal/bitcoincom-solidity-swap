@@ -129,7 +129,7 @@ All files            |     89.2 |       60 |    87.91 |    89.46 |              
 
 ## Expected Values
 
-💻 expected compiler version: ```0.8.12+commit.f00d7308.js```
+💻 expected compiler version: ```0.8.14+commit.80d49f37```
 
 💻 expected optimization option: ```Enabled: 200```
 
@@ -137,27 +137,27 @@ All files            |     89.2 |       60 |    87.91 |    89.46 |              
 ### SwapsFactory
 🏭 expected creationCode hash:
 ```
-0xfbd2c0a706dbe9bf4c482de666a17aa8569653e4eed13d6d89bcd3c62c607929
+0xbc30e6e4f811d2866d54f5a98e1e2d651c49affcc40982e1d659f4f48996ab20
 ```
 SmartBCH Mainnet Address:
 ```
 0x16bc2B187D7C7255b647830C05a6283f2B9A3AF8
 ```
 
-### Swaps Router
+### SwapsRouter
 💎 expected creationCode hash:
 ```
-0xec64c291f42d3536453546fb765a9e352cb1db579a742e20b4d941f4f1116067
+0x2b77192643693a5af772dbb33423a22f5ef1fbb14876deb6520fc7f2dcfa160f
 ```
 SmartBCH Mainnet Address:
 ```
 0xF13541FaD443a4Bf4160B5c0F46aC5c735a908d3
 ```
 
-### Swaps Pair
+### SwapsPair
 💰 expected creationCode hash for SwapsPair:
 ```
-0x4451150e73d96d1b06d6e8363bc2ad193ac86727056746a6e036d1f69cf48b6c
+0x3dbd765ec1bc309907d0abddbfa282061ea55586b6c9a81d5dbc66ced8644e48
 ```
 
 ### feeToSetter

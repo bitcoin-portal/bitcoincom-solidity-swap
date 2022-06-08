@@ -10,7 +10,8 @@ const SwapsPair = artifacts.require("SwapsPair")
 const ethUtil = require('ethereumjs-util');
 const { defaultAbiCoder } = require('@ethersproject/abi');
 const { solidityPack } = require('@ethersproject/solidity');
-const catchRevert = require("./exceptionsHelpers.js").catchRevert;
+// const catchRevert = require("./exceptionsHelpers.js").catchRevert;
+const { expectRevert } = require('@openzeppelin/test-helpers');
 
 // const defaultAbiCoder = require("ethers/lib/utils").defaultAbiCoder;
 // const solidityPack = require("ethers/utils").solidityPack;
@@ -281,49 +282,49 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
         it("should revert if pair already exists", async () => {
 
-            await catchRevert(
+            await expectRevert(
                 factory.createPair(
                     token.address,
                     weth.address
                 ),
-                "revert PAIR_EXISTS"
+                "SwapsFactory: PAIR_ALREADY_EXISTS"
             );
         });
 
         it("should not allow to create pair for identical tokens", async () => {
-            await catchRevert(
+            await expectRevert(
                 factory.createPair(
                     token.address,
                     token.address
                 ),
-                "revert IDENTICAL_ADDRESSES"
+                "SwapsFactory: IDENTICAL"
             );
         });
 
         it("should not allow to create pair for zero address", async () => {
 
-            await catchRevert(
+            await expectRevert(
                 factory.createPair(
                     token.address,
                     ZERO_ADDRESS
                 ),
-                "revert ZERO_ADDRESS"
+                "SwapsFactory: ZERO_ADDRESS"
             );
 
-            await catchRevert(
+            await expectRevert(
                 factory.createPair(
                     ZERO_ADDRESS,
                     token.address
                 ),
-                "revert ZERO_ADDRESS"
+                "SwapsFactory: ZERO_ADDRESS"
             );
 
-            await catchRevert(
+            await expectRevert(
                 factory.createPair(
                     ZERO_ADDRESS,
                     ZERO_ADDRESS,
                 ),
-                "revert ZERO_ADDRESS"
+                "SwapsFactory: IDENTICAL"
             );
         });
 
@@ -651,7 +652,9 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             );
 
-            wethBalanceBefore = await weth.balanceOf(pairAddress);
+            wethBalanceBefore = await weth.balanceOf(
+                pairAddress
+            );
 
             await router.swapExactETHForTokensSupportingFeeOnTransferTokens(
                 0,
@@ -664,7 +667,9 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 }
             );
 
-            wethBalanceAfter = await weth.balanceOf(pairAddress);
+            wethBalanceAfter = await weth.balanceOf(
+                pairAddress
+            );
 
             assert.equal(
                 parseInt(wethBalanceBefore) + parseInt(swapAmount),
@@ -808,7 +813,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 weth.address
             ];
 
-            await catchRevert(
+            await expectRevert(
                 router.swapTokensForExactETH(
                     ONE_ETH,
                     FOUR_ETH,
@@ -819,7 +824,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                         from: owner
                     }
                 ),
-                'revert EXCESSIVE_INPUT_AMOUNT'
+                'EXCESSIVE_INPUT_AMOUNT'
             );
 
             await router.swapTokensForExactETH(
@@ -839,7 +844,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             const swapAmountTokens = ONE_TOKEN;
 
-            await catchRevert(
+            await expectRevert(
                 router.swapETHForExactTokens(
                     swapAmountTokens,
                     path,
@@ -850,7 +855,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                         from: owner
                     }
                 ),
-                'revert INVALID_PATH'
+                'INVALID_PATH'
             );
 
             const correctPath = [
@@ -1020,7 +1025,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 parseInt(tokenBalanceAfter) + parseInt(swapAmount)
             );
 
-            await catchRevert(
+            await expectRevert(
                 router.swapTokensForExactTokens(
                     swapAmount,
                     depositAmount,
@@ -1028,7 +1033,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     owner,
                     0
                 ),
-                'revert SwapsRouter: DEADLINE_EXPIRED'
+                'SwapsRouter: DEADLINE_EXPIRED'
             );
         });
 
@@ -1041,7 +1046,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                 token.address
             ];
 
-            await catchRevert(
+            await expectRevert(
                 router.swapTokensForExactTokens(
                     swapAmount,
                     depositAmount,
@@ -1049,7 +1054,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     owner,
                     1700000000000
                 ),
-                'revert INVALID_PATH'
+                'INVALID_PATH'
             );
         });
     });
@@ -1081,7 +1086,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             const r = '0x7465737400000000000000000000000000000000000000000000000000000000';
             const s = '0x7465737400000000000000000000000000000000000000000000000000000000';
 
-            await catchRevert(
+            await expectRevert(
                 pair.permit(
                     '0x0000000000000000000000000000000000000000',
                     approve.spender,
@@ -1091,7 +1096,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     r,
                     s
                 ),
-                'ERC20Permit: invalid signature'
+                'SwapsERC20: INVALID_SIGNATURE'
             );
         });
 
@@ -1120,7 +1125,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             const r = '0x7465737400000000000000000000000000000000000000000000000000000000';
             const s = '0x7465737400000000000000000000000000000000000000000000000000000000';
 
-            await catchRevert(
+            await expectRevert(
                 pair.permit(
                     '0x0000000000000000000000000000000000000000',
                     approve.spender,
@@ -1130,7 +1135,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
                     r,
                     s
                 ),
-                'revert PERMIT_CALL_EXPIRED'
+                'PERMIT_CALL_EXPIRED'
             );
         });
 
@@ -1303,7 +1308,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
             assert.equal(
                 name,
-                "Bitcoin.com Swaps"
+                "Verse Exchange"
             );
         });
 
@@ -1463,7 +1468,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
         });
 
         it("should revert if not enough balance in the wallet", async () => {
-            await catchRevert(
+            await expectRevert.unspecified(
                 pair.transfer(
                     alice,
                     ONE_TOKEN,
@@ -1605,15 +1610,14 @@ contract("Swaps", ([owner, alice, bob, random]) => {
 
         it("should revert if there is no approval when using transferFrom", async () => {
             const transferValue = ONE_TOKEN;
-            await catchRevert(
+            await expectRevert.unspecified(
                 pair.transferFrom(
                     bob,
                     owner,
                     transferValue, {
                         from: alice
                     }
-                ),
-                "revert REQUIRES APPROVAL"
+                )
             );
         });
     });

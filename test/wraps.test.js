@@ -1,5 +1,6 @@
 const Weth = artifacts.require("WrappedEther");
-const catchRevert = require("./exceptionsHelpers.js").catchRevert;
+// const catchRevert = require("./exceptionsHelpers.js").catchRevert;
+const { expectRevert } = require('@openzeppelin/test-helpers');
 require("./utils");
 const BN = web3.utils.BN;
 
@@ -254,7 +255,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
         it("should revert if not enough balance in the wallet", async () => {
             const balanceBefore = await weth.balanceOf(alice);
 
-            await catchRevert(
+            await expectRevert.unspecified(
                 weth.transfer(
                     bob,
                     parseInt(balanceBefore) + FOUR_ETH,
@@ -391,7 +392,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
         it("should revert if there is no approval when using transferFrom", async () => {
             const transferValue = FOUR_ETH;
 
-            await catchRevert(
+            await expectRevert.unspecified(
                 weth.transferFrom(
                     alice,
                     bob,
@@ -399,8 +400,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
                     {
                         from: owner
                     }
-                ),
-                "revert REQUIRES APPROVAL"
+                )
             );
         });
 
@@ -417,7 +417,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
                 }
             );
 
-            await catchRevert(
+            await expectRevert.unspecified(
                 weth.transferFrom(
                     alice,
                     bob,
@@ -425,8 +425,7 @@ contract("Weth", ([owner, alice, bob, random]) => {
                     {
                         from: owner
                     }
-                ),
-                "revert REQUIRES APPROVAL"
+                )
             );
         });
     });

@@ -1,5 +1,6 @@
 const Token = artifacts.require("Token");
-const catchRevert = require("./exceptionsHelpers.js").catchRevert;
+// const catchRevert = require("./exceptionsHelpers.js").catchRevert;
+const { expectRevert } = require('@openzeppelin/test-helpers');
 
 require("./utils");
 
@@ -121,7 +122,7 @@ contract("Token", ([owner, alice, bob, random]) => {
 
             const balanceBefore = await token.balanceOf(alice);
 
-            await catchRevert(
+            await expectRevert.unspecified(
                 token.transfer(
                     bob,
                     parseInt(balanceBefore) + 1,
@@ -239,13 +240,12 @@ contract("Token", ([owner, alice, bob, random]) => {
             const transferValue = ONE_TOKEN;
             const expectedRecipient = bob;
 
-            await catchRevert(
+            await expectRevert.unspecified(
                 token.transferFrom(
                     owner,
                     expectedRecipient,
                     transferValue
-                ),
-                "revert REQUIRES APPROVAL"
+                )
             );
         });
 
@@ -260,7 +260,7 @@ contract("Token", ([owner, alice, bob, random]) => {
                 approvedValue
             );
 
-            await catchRevert(
+            await expectRevert.unspecified(
                 token.transferFrom(
                     owner,
                     expectedRecipient,
@@ -268,8 +268,7 @@ contract("Token", ([owner, alice, bob, random]) => {
                     {
                         from: alice
                     }
-                ),
-                "revert AMOUNT EXCEEDS APPROVED VALUE"
+                )
             );
         });
     });
@@ -456,7 +455,7 @@ contract("Token", ([owner, alice, bob, random]) => {
             const mintWallet = bob;
             const mintAmount = ONE_TOKEN;
 
-            await catchRevert(
+            await expectRevert(
                 token.mintByMaster(
                     mintAmount,
                     mintWallet,
@@ -464,7 +463,7 @@ contract("Token", ([owner, alice, bob, random]) => {
                         from: alice
                     }
                 ),
-                "revert Token: INVALID_MASTER"
+                "Token: INVALID_MASTER"
             );
         });
 
