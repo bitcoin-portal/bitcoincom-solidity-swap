@@ -1,0 +1,25 @@
+Metadata and sources of "swapsrouter" were published successfully.
+
+ISwapsFactory.sol :
+dweb:/ipfs/QmQB5sQCpJ2cdfXmNhgZiMPcnNCKHAbdsww6nnHEUnfwzd
+
+IWETH.sol :
+dweb:/ipfs/QmUp6xBcn5JY1NUbD7HPe41sXJXuroZ6YEwvNm9E7roeeV
+
+ISwapsPair.sol :
+dweb:/ipfs/QmRQ5yry8bKmLcqhE24jsHHfzoywR57GsLgQmQa5DpBixH
+
+SwapsHelper.sol :
+dweb:/ipfs/QmdQVqUg1fZWHzFwcB8XqzMA6XDimELpN912z6Fnqiftbh
+
+ISwapsERC20.sol :
+dweb:/ipfs/QmX73G7H7hvXpeb3KRx6SQ9Vz4G4jAqWmqDANnTfRPi2y1
+
+IERC20.sol :
+dweb:/ipfs/QmYWoCaXsLC2BXhiTrSMtXhYKxGofzx74wwfpNoX1kH54H
+
+SwapsRouter.sol :
+dweb:/ipfs/QmfL4SfztUFTQBz2SSEj8KqvxMcoohYbwJLpbYQYTs4Hpz
+
+metadata.json :
+dweb:/ipfs/QmTzn8NMkRzLsnwgDkaLgsx7bvkQ4h2mLGAk4pPxkfYVD8

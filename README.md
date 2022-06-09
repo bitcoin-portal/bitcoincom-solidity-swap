@@ -137,8 +137,14 @@ All files            |     89.2 |       60 |    87.91 |    89.46 |              
 ### SwapsFactory
 🏭 expected creationCode hash:
 ```
-0xbc30e6e4f811d2866d54f5a98e1e2d651c49affcc40982e1d659f4f48996ab20
+0x34768b85d02b77066b16acc7f0875ed59566bb3c32ba4fb0438750e872fddf9e
 ```
+
+Ethereum Mainnet Address:
+```
+0xee3E9E46E34a27dC755a63e2849C9913Ee1A06E2
+```
+
 SmartBCH Mainnet Address:
 ```
 0x16bc2B187D7C7255b647830C05a6283f2B9A3AF8
@@ -147,17 +153,22 @@ SmartBCH Mainnet Address:
 ### SwapsRouter
 💎 expected creationCode hash:
 ```
-0x2b77192643693a5af772dbb33423a22f5ef1fbb14876deb6520fc7f2dcfa160f
+0x15daa8e8330de1941ec3d00089aa6d7c00050ffdf3394ad16dcfc034b50d9644
 ```
 SmartBCH Mainnet Address:
 ```
 0xF13541FaD443a4Bf4160B5c0F46aC5c735a908d3
 ```
 
+Ethereum Mainnet Address:
+```
+0xB4B0ea46Fe0E9e8EAB4aFb765b527739F2718671
+```
+
 ### SwapsPair
 💰 expected creationCode hash for SwapsPair:
 ```
-0x3dbd765ec1bc309907d0abddbfa282061ea55586b6c9a81d5dbc66ced8644e48
+0xea262aa87f6ccb1a5351d1f7d934b75bb08b6f766003e9969783ee5fe0ba7e6b
 ```
 
 ### feeToSetter
