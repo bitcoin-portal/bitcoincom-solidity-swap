@@ -1,8 +1,12 @@
+
 # bitcoincom-solidity-swap
 
 This repository contains smart-contracts for the swap between token A and token B or
 token A to ETH / ETH to token A.
 
+
+
+CLI
 
 ### Process and Testing
 
@@ -10,8 +14,15 @@ The package can be run as a CLI for testing purposes.
 
 🔗 First start a local chain:
 
+run
+help
+
+
+run
 ```
 npm run chain
+chain
+
 ```
 
 Then run test commands for contract deployment and testing
@@ -21,6 +32,8 @@ Then run test commands for contract deployment and testing
 ```
 npm run test-token
 ```
+
+nmp
 
 
 🌯 This command runs wrapped ether tests:
