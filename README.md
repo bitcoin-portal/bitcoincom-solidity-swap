@@ -176,3 +176,37 @@ Ethereum Mainnet Address:
 ```
 0x138a09B1822450a2d6cbbf59C72aecbb475b0f5f
 ```
+
+```
+const token0 = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+const token1 = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
+const factory = "0xee3E9E46E34a27dC755a63e2849C9913Ee1A06E2";
+
+const initCode = "0x3d602d80600a3d3981f3363d3d373d3d3d363d737290367aa694703220516a35e68e3d339ee7d1935af43d82803e903d91602b57fd5bf3";
+
+const initCodeHash = ethers.utils.solidityKeccak256(
+    [
+        'bytes'
+    ],
+    [
+        initCode
+    ]
+);
+
+const salt = ethers.utils.solidityKeccak256(
+    [
+        'address',
+        'address'
+    ],
+    [
+        token0,
+        token1
+    ],
+);
+
+const contractAddress = ethers.utils.getCreate2Address(
+    factory,
+    salt,
+    initCodeHash,
+);
+```
