@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BCOM
 
-pragma solidity =0.8.14;
+pragma solidity =0.8.19;
 
 interface ISwapsFactory {
 
