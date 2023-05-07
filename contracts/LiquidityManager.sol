@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.19;
 
-import "./IERC20.sol";
+import "./ISwapsERC20.sol";
 import "./ISwapsPair.sol";
 import "./ISwapsRouter.sol";
 import "./ISwapsFactory.sol";
@@ -42,7 +42,7 @@ contract LiquidityManager {
         external
         returns (uint256 swapAmount)
     {
-        IERC20(_tokenA).transferFrom(
+        ISwapsERC20(_tokenA).transferFrom(
             msg.sender,
             address(this),
             _amountA
@@ -83,7 +83,7 @@ contract LiquidityManager {
     )
         internal
     {
-        IERC20(_fromToken).approve(
+        ISwapsERC20(_fromToken).approve(
             ROUTER_ADDRESS,
             _swapAmount
         );
@@ -109,20 +109,20 @@ contract LiquidityManager {
     )
         internal
     {
-        uint256 balanceA = IERC20(_tokenA).balanceOf(
+        uint256 balanceA = ISwapsERC20(_tokenA).balanceOf(
             address(this)
         );
 
-        uint256 balanceB = IERC20(_tokenB).balanceOf(
+        uint256 balanceB = ISwapsERC20(_tokenB).balanceOf(
             address(this)
         );
 
-        IERC20(_tokenA).approve(
+        ISwapsERC20(_tokenA).approve(
             ROUTER_ADDRESS,
             balanceA
         );
 
-        IERC20(_tokenB).approve(
+        ISwapsERC20(_tokenB).approve(
             ROUTER_ADDRESS,
             balanceB
         );
