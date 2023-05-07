@@ -5,7 +5,6 @@ require("./utils");
 const BN = web3.utils.BN;
 
 const ONE_ETH = web3.utils.toWei("1");
-
 const FOUR_ETH = web3.utils.toWei("4");
 const FIVE_ETH = web3.utils.toWei("5");
 const NINE_ETH = web3.utils.toWei("9");
