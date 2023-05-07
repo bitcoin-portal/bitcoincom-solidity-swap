@@ -26,7 +26,8 @@
 		"migrate-uniswap-router": "cd uniswap && truffle migrate",
 		"migrate-main": "truffle migrate",
 		"migrate-all": "npm run migrate-weth && npm run migrate-uniswap-factory && npm run migrate-uniswap-router && npm run migrate-main",
-		"bridge": "ethereum-bridge -H localhost:9545 -a 1 --dev"
+		"bridge": "ethereum-bridge -H localhost:9545 -a 1 --dev",
+		"make-chain-live": "npx hardhat node --fork https://eth-mainnet.g.alchemy.com/v2/GIE2WO3ORzSLZD9CYyh9wsuAmeiYb_NV/ --fork-block-number 16827867 --port 9545"
 	},
 	"keywords": [
 		"solidity",
@@ -71,10 +72,21 @@
 		"solidity-docgen": "^0.5.3",
 		"truffle": "^5.4.12",
 		"web3": "^1.3.0",
-		"yargs": "^16.2.0"
+		"yargs": "^16.2.0",
+        "hardhat": "^2.12.6",
+        "truffle-plugin-verify": "^0.5.27"
 	},
 	"dependencies": {
 		"@openzeppelin/contracts": "^4.3.1",
-		"@openzeppelin/test-helpers": "^0.5.13"
+		"@openzeppelin/test-helpers": "^0.5.13",
+        "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
+        "@nomiclabs/hardhat-ethers": "^2.1.1",
+        "@nomiclabs/hardhat-truffle5": "^2.0.7",
+        "@nomiclabs/hardhat-waffle": "^2.0.3",
+        "@nomiclabs/hardhat-web3": "^2.0.0",
+        "chai": "^4.3.6",
+        "custom-error-test-helper": "^1.0.6",
+        "ethers": "^5.7.1",
+        "web3": "^1.8.0"
 	}
 }
