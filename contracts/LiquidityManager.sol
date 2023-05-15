@@ -7,24 +7,27 @@ import "./ISwapsPair.sol";
 import "./ISwapsRouter.sol";
 import "./ISwapsFactory.sol";
 
-contract LiquidityManager {
-
-    ISwapsFactory immutable FACTORY;
-    ISwapsRouter immutable ROUTER;
+contract LiquidityMaker {
 
     address immutable ROUTER_ADDRESS;
-    address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
+    ISwapsRouter public immutable ROUTER;
+    ISwapsFactory public immutable FACTORY;
+
+    event LiquidityAdded(
+        uint256 amount
+    );
 
     constructor(
-        ISwapsFactory _factory,
-        ISwapsRouter _router
+        ISwapsRouter _router,
+        ISwapsFactory _factory
     ) {
-        FACTORY = _factory;
-        ROUTER = _router;
-
         ROUTER_ADDRESS = address(
             _router
         );
+
+        ROUTER = _router;
+        FACTORY = _factory;
     }
 
     /**
@@ -36,8 +39,10 @@ contract LiquidityManager {
     function makeLiquidity(
         address _tokenA,
         address _tokenB,
-        uint256 _amountA,
-        uint256 _minExpected
+        uint256 _depositAmountA,
+        uint256 _expectedAmountB,
+        uint256 _minTokenA,
+        uint256 _minTokenB
     )
         external
         returns (uint256 swapAmount)
@@ -45,7 +50,7 @@ contract LiquidityManager {
         ISwapsERC20(_tokenA).transferFrom(
             msg.sender,
             address(this),
-            _amountA
+            _depositAmountA
         );
 
         ISwapsPair pair = _getPair(
@@ -59,29 +64,89 @@ contract LiquidityManager {
         ) = pair.getReserves();
 
         swapAmount = pair.token0() == _tokenA
-            ? getSwapAmount(reserve0, _amountA)
-            : getSwapAmount(reserve1, _amountA);
+            ? getSwapAmount(reserve0, _depositAmountA)
+            : getSwapAmount(reserve1, _depositAmountA);
 
         _swap(
             _tokenA,
             _tokenB,
             swapAmount,
-            _minExpected
+            _expectedAmountB
         );
 
         _addLiquidity(
             _tokenA,
+            _tokenB,
+            _minTokenA,
+            _minTokenB,
+            msg.sender
+        );
+    }
+
+    function stakeLiquidity(
+        address _tokenA,
+        address _tokenB,
+        uint256 _depositAmountA,
+        uint256 _expectedAmountB
+        // uint256 _minTokenA,
+        // uint256 _minTokenB
+        // address _verseFarm
+    )
+        external
+        returns (uint256 swapAmount)
+    {
+        ISwapsERC20(_tokenA).transferFrom(
+            msg.sender,
+            address(this),
+            _depositAmountA
+        );
+
+        ISwapsPair pair = _getPair(
+            _tokenA,
             _tokenB
         );
+
+        (
+            uint256 reserve0,
+            uint256 reserve1,
+        ) = pair.getReserves();
+
+        swapAmount = pair.token0() == _tokenA
+            ? getSwapAmount(reserve0, _depositAmountA)
+            : getSwapAmount(reserve1, _depositAmountA);
+
+        uint256[] memory swapResult = _swap(
+            _tokenA,
+            _tokenB,
+            swapAmount,
+            _expectedAmountB
+        );
+
+        uint256 liquidity = _addLiquidity(
+            _tokenA,
+            _tokenB,
+            swapResult[0],
+            swapResult[1],
+            address(this)
+        );
+
+        emit LiquidityAdded(
+            liquidity
+        );
+
+        // _farmDeposit(
+        //  liquidity
+        // );
     }
 
     function _swap(
         address _fromToken,
         address _toToken,
         uint256 _swapAmount,
-        uint256 _minExpected
+        uint256 _expectedAmountOut
     )
         internal
+        returns (uint256[] memory)
     {
         ISwapsERC20(_fromToken).approve(
             ROUTER_ADDRESS,
@@ -94,9 +159,9 @@ contract LiquidityManager {
         path[0] = _fromToken;
         path[1] = _toToken;
 
-        ROUTER.swapExactTokensForTokens(
+        return ROUTER.swapExactTokensForTokens(
             _swapAmount,
-            _minExpected,
+            _expectedAmountOut,
             path,
             address(this),
             block.timestamp
@@ -105,9 +170,13 @@ contract LiquidityManager {
 
     function _addLiquidity(
         address _tokenA,
-        address _tokenB
+        address _tokenB,
+        uint256 _minTokenA,
+        uint256 _minTokenB,
+        address _recipient
     )
         internal
+        returns (uint256)
     {
         uint256 balanceA = ISwapsERC20(_tokenA).balanceOf(
             address(this)
@@ -127,16 +196,22 @@ contract LiquidityManager {
             balanceB
         );
 
-        ROUTER.addLiquidity(
+        (
+            ,
+            ,
+            uint256 liquidity
+        ) = ROUTER.addLiquidity(
             _tokenA,
             _tokenB,
             balanceA,
             balanceB,
-            0,
-            0,
-            address(this),
+            _minTokenA,
+            _minTokenB,
+            _recipient,
             block.timestamp
         );
+
+        return liquidity;
     }
 
     function _getPair(
@@ -171,7 +246,11 @@ contract LiquidityManager {
         pure
         returns (uint256)
     {
-        return (sqrt(_r * (_r * 3988009 + _a * 3988000)) - _r * 1997) / 1994;
+        return (
+            sqrt(
+                _r * (_r * 3988009 + _a * 3988000)
+            ) - _r * 1997
+        ) / 1994;
     }
 
     /**
