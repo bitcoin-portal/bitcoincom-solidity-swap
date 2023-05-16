@@ -27,7 +27,7 @@
 		"migrate-main": "truffle migrate",
 		"migrate-all": "npm run migrate-weth && npm run migrate-uniswap-factory && npm run migrate-uniswap-router && npm run migrate-main",
 		"bridge": "ethereum-bridge -H localhost:9545 -a 1 --dev",
-		"make-chain-live": "npx hardhat node --fork https://eth-mainnet.g.alchemy.com/v2/J3bTM7KLiYYwh8Ar_VBXuo-oLlGTx7od --fork-block-number 16827860 --port 9545",
+		"make-chain-live": "npx hardhat node --fork https://eth-mainnet.g.alchemy.com/v2/J3bTM7KLiYYwh8Ar_VBXuo-oLlGTx7od --fork-block-number 17274000 --port 9545",
 		"test-live" : "npx hardhat test --network live test/wraps.test.js",
 		"test-liquidity-maker" : "npx hardhat test --network live test/maker.test.js"
 	},
