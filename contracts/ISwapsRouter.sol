@@ -4,6 +4,10 @@ pragma solidity ^0.8.19;
 
 interface ISwapsRouter {
 
+    function WETH()
+        external
+        returns (address);
+
     function addLiquidity(
         address tokenA,
         address tokenB,
