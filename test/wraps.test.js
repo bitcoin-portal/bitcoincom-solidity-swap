@@ -11,7 +11,7 @@ const NINE_ETH = web3.utils.toWei("9");
 
 const getLastEvent = async (eventName, instance) => {
     const events = await instance.getPastEvents(eventName, {
-        fromBlock: 0,
+        fromBlock: 17274000, // 1 ETH = ~$1820
         toBlock: "latest",
     });
     return events.pop().returnValues;
