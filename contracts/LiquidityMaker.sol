@@ -2,20 +2,28 @@
 
 pragma solidity ^0.8.19;
 
-import "./ISwapsERC20.sol";
+import "./IWETH.sol";
 import "./ISwapsPair.sol";
 import "./ISwapsRouter.sol";
 import "./ISwapsFactory.sol";
+import "./LiquidityHelper.sol";
 
-contract LiquidityMaker {
+contract LiquidityMaker is LiquidityHelper {
 
+    address immutable WETH_ADDRESS;
     address immutable ROUTER_ADDRESS;
 
+    IWETH public immutable WETH;
     ISwapsRouter public immutable ROUTER;
     ISwapsFactory public immutable FACTORY;
 
+    event SwapResults(
+        uint256 amountIn,
+        uint256 amountOUt
+    );
+
     event LiquidityAdded(
-        uint256 amount
+        uint256 amountAdded
     );
 
     constructor(
@@ -28,6 +36,12 @@ contract LiquidityMaker {
 
         ROUTER = _router;
         FACTORY = _factory;
+
+        WETH_ADDRESS = ROUTER.WETH();
+
+        WETH = IWETH(
+            WETH_ADDRESS
+        );
     }
 
     /**
@@ -37,6 +51,37 @@ contract LiquidityMaker {
      * 2. Adds liquidity for token A and token B pair
     */
     function makeLiquidity(
+        address _tokenB,
+        uint256 _expectedAmountB,
+        uint256 _minEther,
+        uint256 _minToken
+    )
+        external
+        payable
+        returns (uint256)
+    {
+        _wrapEther(
+            msg.value
+        );
+
+        return _makeLiquidity(
+            WETH_ADDRESS,
+            _tokenB,
+            msg.value,
+            _expectedAmountB,
+            _minEther,
+            _minToken,
+            msg.sender
+        );
+    }
+
+    /**
+     * @dev
+     * Optimal one-sided supply
+     * 1. Swaps optimal amount from token A to token B
+     * 2. Adds liquidity for token A and token B pair
+    */
+    function makeLiquidityDual(
         address _tokenA,
         address _tokenB,
         uint256 _depositAmountA,
@@ -45,14 +90,45 @@ contract LiquidityMaker {
         uint256 _minTokenB
     )
         external
-        returns (uint256 swapAmount)
+        payable
+        returns (uint256)
     {
-        ISwapsERC20(_tokenA).transferFrom(
+        _safeTransferFrom(
+            _tokenA,
             msg.sender,
             address(this),
             _depositAmountA
         );
 
+        return _makeLiquidity(
+            _tokenA,
+            _tokenB,
+            _depositAmountA,
+            _expectedAmountB,
+            _minTokenA,
+            _minTokenB,
+            msg.sender
+        );
+    }
+
+    /**
+     * @dev
+     * Optimal one-sided supply
+     * 1. Swaps optimal amount from token A to token B
+     * 2. Adds liquidity for token A and token B pair
+    */
+    function _makeLiquidity(
+        address _tokenA,
+        address _tokenB,
+        uint256 _depositAmountA,
+        uint256 _expectedAmountB,
+        uint256 _minTokenA,
+        uint256 _minTokenB,
+        address _beneficiary
+    )
+        internal
+        returns (uint256)
+    {
         ISwapsPair pair = _getPair(
             _tokenA,
             _tokenB
@@ -63,24 +139,37 @@ contract LiquidityMaker {
             uint256 reserve1,
         ) = pair.getReserves();
 
-        swapAmount = pair.token0() == _tokenA
+        uint256 swapAmount = pair.token0() == _tokenA
             ? getSwapAmount(reserve0, _depositAmountA)
             : getSwapAmount(reserve1, _depositAmountA);
 
-        _swap(
+        // uint256[] memory swapResult =
+
+        uint256[] memory swapResults = _swap(
             _tokenA,
             _tokenB,
             swapAmount,
             _expectedAmountB
         );
 
-        _addLiquidity(
+        emit SwapResults(
+            swapResults[0],
+            swapResults[1]
+        );
+
+        uint256 lpTokenAmount = _addLiquidity(
             _tokenA,
             _tokenB,
-            _minTokenA,
-            _minTokenB,
-            msg.sender
+            _minTokenA, // swapResult[0],
+            _minTokenB, // swapResult[1],
+            _beneficiary
         );
+
+        emit LiquidityAdded(
+            lpTokenAmount
+        );
+
+        return swapAmount;
     }
 
     function stakeLiquidity(
@@ -135,7 +224,6 @@ contract LiquidityMaker {
         );
 
         // _farmDeposit(
-        //  liquidity
         // );
     }
 
