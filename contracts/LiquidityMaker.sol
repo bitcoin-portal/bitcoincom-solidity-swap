@@ -232,47 +232,13 @@ contract LiquidityMaker {
 
     /**
      * @dev
-     * s = optimal swap amount
-     * r = amount of reserve for token a
-     * a = amount of token a the user currently has (not added to reserve yet)
-     * f = swap fee percent
-     * s = (sqrt(((2 - f)r)^2 + 4(1 - f)ar) - (2 - f)r) / (2(1 - f))
-    */
-    function getSwapAmount(
-        uint256 _r,
-        uint256 _a
-    )
-        public
-        pure
-        returns (uint256)
-    {
-        return (
-            sqrt(
-                _r * (_r * 3988009 + _a * 3988000)
-            ) - _r * 1997
-        ) / 1994;
-    }
-
-    /**
-     * @dev
      *
     */
-    function sqrt(
-        uint256 _y
+    function _wrapEther(
+        uint256 _amount
     )
         private
-        pure
-        returns (uint256 z)
     {
-        if (_y > 3) {
-            z = _y;
-            uint256 x = _y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (_y / x + x) / 2;
-            }
-        } else if (_y != 0) {
-            z = 1;
-        }
+        WETH.deposit{value: _amount}();
     }
 }
