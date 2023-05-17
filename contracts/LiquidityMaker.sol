@@ -52,10 +52,10 @@ contract LiquidityMaker is LiquidityHelper {
      * 2. Adds liquidity for token A and token B pair
     */
     function makeLiquidity(
-        address _tokenB,
-        uint256 _expectedAmountB,
-        uint256 _minEther,
-        uint256 _minToken
+        address _tokenAddress,
+        uint256 _expectedTokenAmount,
+        uint256 _minimumLiquidityEther,
+        uint256 _minimumLiquidityToken
     )
         external
         payable
@@ -67,11 +67,11 @@ contract LiquidityMaker is LiquidityHelper {
 
         return _makeLiquidity(
             WETH_ADDRESS,
-            _tokenB,
+            _tokenAddress,
             msg.value,
-            _expectedAmountB,
-            _minEther,
-            _minToken,
+            _expectedTokenAmount,
+            _minimumLiquidityEther,
+            _minimumLiquidityToken,
             msg.sender
         );
     }
@@ -85,10 +85,10 @@ contract LiquidityMaker is LiquidityHelper {
     function makeLiquidityDual(
         address _tokenA,
         address _tokenB,
-        uint256 _depositAmountA,
+        uint256 _initialAmountA,
         uint256 _expectedAmountB,
-        uint256 _minTokenA,
-        uint256 _minTokenB
+        uint256 _minimumLiquidityA,
+        uint256 _minimumLiquidityB
     )
         external
         payable
@@ -98,34 +98,28 @@ contract LiquidityMaker is LiquidityHelper {
             _tokenA,
             msg.sender,
             address(this),
-            _depositAmountA
+            _initialAmountA
         );
 
         return _makeLiquidity(
             _tokenA,
             _tokenB,
-            _depositAmountA,
+            _initialAmountA,
             _expectedAmountB,
-            _minTokenA,
-            _minTokenB,
+            _minimumLiquidityA,
+            _minimumLiquidityB,
             msg.sender
         );
     }
 
-    /**
-     * @dev
-     * Optimal one-sided supply
-     * 1. Swaps optimal amount from token A to token B
-     * 2. Adds liquidity for token A and token B pair
-    */
     function _makeLiquidity(
         address _tokenA,
         address _tokenB,
-        uint256 _depositAmountA,
+        uint256 _initialAmountA,
         uint256 _expectedAmountB,
-        uint256 _minTokenA,
-        uint256 _minTokenB,
-        address _beneficiary
+        uint256 _minimumLiquidityA,
+        uint256 _minimumLiquidityB,
+        address _beneficiaryAddress
     )
         internal
         returns (uint256)
@@ -141,10 +135,8 @@ contract LiquidityMaker is LiquidityHelper {
         ) = pair.getReserves();
 
         uint256 swapAmount = pair.token0() == _tokenA
-            ? getSwapAmount(reserve0, _depositAmountA)
-            : getSwapAmount(reserve1, _depositAmountA);
-
-        // uint256[] memory swapResult =
+            ? getSwapAmount(reserve0, _initialAmountA)
+            : getSwapAmount(reserve1, _initialAmountA);
 
         uint256[] memory swapResults = _swap(
             _tokenA,
@@ -161,42 +153,42 @@ contract LiquidityMaker is LiquidityHelper {
         uint256 lpTokenAmount = _addLiquidity(
             _tokenA,
             _tokenB,
-            _minTokenA, // swapResult[0],
-            _minTokenB, // swapResult[1],
-            _beneficiary
+            swapResults[0],
+            swapResults[1],
+            _minimumLiquidityA,
+            _minimumLiquidityB,
+            _beneficiaryAddress
         );
 
         emit LiquidityAdded(
-            lpTokenAmount
+            lpTokenAmount,
+            _beneficiaryAddress
         );
 
         return swapAmount;
     }
 
     function _swap(
-        address _fromToken,
-        address _toToken,
-        uint256 _swapAmount,
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _swapAmountIn,
         uint256 _expectedAmountOut
     )
         internal
         returns (uint256[] memory)
     {
-        ISwapsERC20(_fromToken).approve(
+        ISwapsERC20(_tokenIn).approve(
             ROUTER_ADDRESS,
-            _swapAmount
+            MAX_VALUE
         );
 
-        address[] memory path = new address[](2);
-        path = new address[](2);
-
-        path[0] = _fromToken;
-        path[1] = _toToken;
-
         return ROUTER.swapExactTokensForTokens(
-            _swapAmount,
+            _swapAmountIn,
             _expectedAmountOut,
-            path,
+            _makePath(
+                _tokenIn,
+                _tokenOut
+            ),
             address(this),
             block.timestamp
         );
@@ -205,16 +197,18 @@ contract LiquidityMaker is LiquidityHelper {
     function _addLiquidity(
         address _tokenA,
         address _tokenB,
+        uint256 _amountA,
+        uint256 _amountB,
         uint256 _minTokenA,
         uint256 _minTokenB,
-        address _recipient
+        address _beneficiary
     )
         internal
         returns (uint256)
     {
         ISwapsERC20(_tokenB).approve(
             ROUTER_ADDRESS,
-            balanceB
+            _amountB
         );
 
         (
@@ -224,11 +218,11 @@ contract LiquidityMaker is LiquidityHelper {
         ) = ROUTER.addLiquidity(
             _tokenA,
             _tokenB,
-            balanceA,
-            balanceB,
+            _amountA,
+            _amountB,
             _minTokenA,
             _minTokenB,
-            _recipient,
+            _beneficiary,
             block.timestamp
         );
 
