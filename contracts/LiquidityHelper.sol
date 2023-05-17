@@ -6,6 +6,23 @@ import "./IERC20.sol";
 
 contract LiquidityHelper {
 
+
+    function _makePath(
+        address _tokenIn,
+        address _tokenOut
+    )
+        internal
+        pure
+        returns (address[] memory path)
+    {
+        path = new address[](2);
+
+        path[0] = _tokenIn;
+        path[1] = _tokenOut;
+
+        return path;
+    }
+
     /**
      * @dev Allows to execute transferFrom for a token
      */
