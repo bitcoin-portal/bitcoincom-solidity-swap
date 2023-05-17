@@ -173,61 +173,6 @@ contract LiquidityMaker is LiquidityHelper {
         return swapAmount;
     }
 
-    function stakeLiquidity(
-        address _tokenA,
-        address _tokenB,
-        uint256 _depositAmountA,
-        uint256 _expectedAmountB
-        // uint256 _minTokenA,
-        // uint256 _minTokenB
-        // address _verseFarm
-    )
-        external
-        returns (uint256 swapAmount)
-    {
-        ISwapsERC20(_tokenA).transferFrom(
-            msg.sender,
-            address(this),
-            _depositAmountA
-        );
-
-        ISwapsPair pair = _getPair(
-            _tokenA,
-            _tokenB
-        );
-
-        (
-            uint256 reserve0,
-            uint256 reserve1,
-        ) = pair.getReserves();
-
-        swapAmount = pair.token0() == _tokenA
-            ? getSwapAmount(reserve0, _depositAmountA)
-            : getSwapAmount(reserve1, _depositAmountA);
-
-        uint256[] memory swapResult = _swap(
-            _tokenA,
-            _tokenB,
-            swapAmount,
-            _expectedAmountB
-        );
-
-        uint256 liquidity = _addLiquidity(
-            _tokenA,
-            _tokenB,
-            swapResult[0],
-            swapResult[1],
-            address(this)
-        );
-
-        emit LiquidityAdded(
-            liquidity
-        );
-
-        // _farmDeposit(
-        // );
-    }
-
     function _swap(
         address _fromToken,
         address _toToken,
