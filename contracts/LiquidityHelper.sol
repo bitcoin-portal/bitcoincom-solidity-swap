@@ -6,6 +6,7 @@ import "./IERC20.sol";
 
 contract LiquidityHelper {
 
+    uint256 constant MAX_VALUE = type(uint256).max;
 
     function _makePath(
         address _tokenIn,
