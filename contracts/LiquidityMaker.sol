@@ -212,19 +212,6 @@ contract LiquidityMaker is LiquidityHelper {
         internal
         returns (uint256)
     {
-        uint256 balanceA = ISwapsERC20(_tokenA).balanceOf(
-            address(this)
-        );
-
-        uint256 balanceB = ISwapsERC20(_tokenB).balanceOf(
-            address(this)
-        );
-
-        ISwapsERC20(_tokenA).approve(
-            ROUTER_ADDRESS,
-            balanceA
-        );
-
         ISwapsERC20(_tokenB).approve(
             ROUTER_ADDRESS,
             balanceB
