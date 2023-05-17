@@ -23,7 +23,8 @@ contract LiquidityMaker is LiquidityHelper {
     );
 
     event LiquidityAdded(
-        uint256 amountAdded
+        uint256 amountAdded,
+        address indexed addedTo
     );
 
     constructor(
