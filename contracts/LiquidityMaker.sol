@@ -19,7 +19,7 @@ contract LiquidityMaker is LiquidityHelper {
 
     event SwapResults(
         uint256 amountIn,
-        uint256 amountOUt
+        uint256 amountOut
     );
 
     event LiquidityAdded(
