@@ -37,7 +37,7 @@ contract LiquidityHelper {
     {
         IERC20 token = IERC20(_token);
 
-        callOptionalReturn(
+        _callOptionalReturn(
             _token,
             abi.encodeWithSelector(
                 token.transferFrom.selector,
@@ -48,7 +48,7 @@ contract LiquidityHelper {
         );
     }
 
-    function callOptionalReturn(
+    function _callOptionalReturn(
         address _token,
         bytes memory _data
     )
