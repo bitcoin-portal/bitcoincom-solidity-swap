@@ -10,26 +10,25 @@ require("./utils");
 // const BN = web3.utils.BN;
 
 const tokens = (value) => {
-    return web3.utils.toWei(value);
+    return web3.utils.toWei(value.toString());
 }
 
-const ONE_ETH = tokens("1");
-const FOUR_ETH = tokens("4");
-const FIVE_ETH = tokens("5");
-const NINE_ETH = tokens("9");
+const ONE_ETH = tokens(1);
+const FOUR_ETH = tokens(4);
+const FIVE_ETH = tokens(5);
+const NINE_ETH = tokens(9);
+const HALF_ETH = tokens(0.5);
 
-const HALF_ETH = tokens("0.5");
-
+const ethPrice = 1800;
 const testBlock = 17274000;
-
+// 1 ETH = ~$1800 @block 17274000 (on VerseDEX);
 const getLastEvent = async (eventName, instance) => {
     const events = await instance.getPastEvents(eventName, {
-        fromBlock: testBlock, // 1 ETH = ~$1820
+        fromBlock: testBlock,
         toBlock: "latest",
     });
     return events.pop().returnValues;
 };
-
 
 const MAINNET_ROUTER = "0xB4B0ea46Fe0E9e8EAB4aFb765b527739F2718671";
 const MAINNET_FACTORY = "0xee3E9E46E34a27dC755a63e2849C9913Ee1A06E2";
@@ -67,6 +66,7 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
     let weth;
     let maker;
     let verse;
+    let verseX;
 
     beforeEach(async () => {
         maker = await Maker.new(
@@ -111,8 +111,17 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
         it("should be able to provide liquidity (WETH/DAI) using WEHT", async () => {
 
             const depositor = alice;
-            const depositAmountEth = ONE_ETH;
-            const minDaiExpected = tokens("900");
+
+            const ethAmount = 1;
+            const daiAmount = ethAmount * ethPrice;
+            const TOLERANCE = 0.99;
+
+            const depositAmountEth = tokens(ethAmount);
+            const expectedAmountDai = tokens(daiAmount / 2);
+            const expectedAmountEth = tokens(ethAmount / 2);
+
+            const minLiquidityEth = tokens(ethAmount / 2 * TOLERANCE);
+            const minLiquidityDai = tokens(daiAmount / 2 * TOLERANCE);
 
             const balanceBefore = await weth.balanceOf(
                 depositor
@@ -150,33 +159,59 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 MAINNET_WRAPPED_ETH,
                 MAINNET_DAI_TOKEN,
                 depositAmountEth,
-                minDaiExpected,
-                0,
-                0,
+                expectedAmountDai,
+                minLiquidityEth,
+                minLiquidityDai,
                 {
                     from: depositor
                 }
             );
 
-            const swapResultData = await getLastEvent(
+            const { amountIn, amountOut } = await getLastEvent(
                 "SwapResults",
                 maker
             );
 
-            console.log(swapResultData, 'swapResultData');
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(expectedAmountEth)
+            );
 
-            const liquidityData = await getLastEvent(
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(expectedAmountDai)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(minLiquidityEth)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(minLiquidityDai)
+            );
+
+            const { amountAdded, addedTo } = await getLastEvent(
                 "LiquidityAdded",
                 maker
             );
 
-            console.log(liquidityData, 'liquidityData');
+            assert.equal(
+                addedTo,
+                depositor
+            );
+
+            assert.isAtLeast(
+                parseInt(amountAdded),
+                0
+            );
         });
 
         it("should be able to provide liquidity (WETH/DAI) using DAI", async () => {
 
             const depositor = alice;
-            const depositAmountDai = tokens("1820");
+            const depositAmountDai = tokens(1820);
             const minEthExpected = HALF_ETH;
 
             await getSomeDai(
