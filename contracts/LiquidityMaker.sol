@@ -162,11 +162,6 @@ contract LiquidityMaker is LiquidityHelper {
             _beneficiaryAddress
         );
 
-        emit LiquidityAdded(
-            lpTokenAmount,
-            _beneficiaryAddress
-        );
-
         return swapAmount;
     }
 
@@ -238,7 +233,12 @@ contract LiquidityMaker is LiquidityHelper {
             block.timestamp
         );
 
-        return liquidity;
+        emit LiquidityAdded(
+            tokenAmountA,
+            tokenAmountB,
+            tokenAmountLP,
+            _beneficiary
+        );
     }
 
     /**
