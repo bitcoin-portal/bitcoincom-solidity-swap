@@ -192,9 +192,19 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 parseInt(minLiquidityDai)
             );
 
-            const { amountAdded, addedTo } = await getLastEvent(
+            const {
+                tokenAmountA,
+                tokenAmountB,
+                tokenAmountLP,
+                addedTo
+            } = await getLastEvent(
                 "LiquidityAdded",
                 maker
+            );
+
+            assert.equal(
+                amountOut,
+                tokenAmountB
             );
 
             assert.equal(
@@ -203,7 +213,12 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             );
 
             assert.isAtLeast(
-                parseInt(amountAdded),
+                parseInt(amountIn),
+                parseInt(tokenAmountA)
+            );
+
+            assert.isAtLeast(
+                parseInt(tokenAmountLP),
                 0
             );
         });
