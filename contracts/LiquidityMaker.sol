@@ -152,7 +152,7 @@ contract LiquidityMaker is LiquidityHelper {
             swapResults[1]
         );
 
-        uint256 lpTokenAmount = _addLiquidity(
+        _addLiquidity(
             _tokenA,
             _tokenB,
             swapResults[0],
@@ -211,7 +211,6 @@ contract LiquidityMaker is LiquidityHelper {
         address _beneficiary
     )
         internal
-        returns (uint256)
     {
         ISwapsERC20(_tokenB).approve(
             ROUTER_ADDRESS,
@@ -219,9 +218,9 @@ contract LiquidityMaker is LiquidityHelper {
         );
 
         (
-            ,
-            ,
-            uint256 liquidity
+            uint256 tokenAmountA,
+            uint256 tokenAmountB,
+            uint256 tokenAmountLP
         ) = ROUTER.addLiquidity(
             _tokenA,
             _tokenB,
