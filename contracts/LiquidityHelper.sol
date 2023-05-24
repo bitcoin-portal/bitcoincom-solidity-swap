@@ -8,6 +8,10 @@ contract LiquidityHelper {
 
     uint256 constant MAX_VALUE = type(uint256).max;
 
+    /**
+     * @dev
+     * Prepares path for the swap
+     */
     function _makePath(
         address _tokenIn,
         address _tokenOut
@@ -25,7 +29,8 @@ contract LiquidityHelper {
     }
 
     /**
-     * @dev Allows to execute transferFrom for a token
+     * @dev
+     * Allows to execute transferFrom for a token
      */
     function _safeTransferFrom(
         address _token,
@@ -100,7 +105,7 @@ contract LiquidityHelper {
 
     /**
      * @dev
-     *
+     * Calculates square root of the _y number
     */
     function _sqrt(
         uint256 _y
