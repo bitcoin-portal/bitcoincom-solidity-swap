@@ -23,7 +23,9 @@ contract LiquidityMaker is LiquidityHelper {
     );
 
     event LiquidityAdded(
-        uint256 amountAdded,
+        uint256 tokenAmountA,
+        uint256 tokenAmountB,
+        uint256 tokenAmountLP,
         address indexed addedTo
     );
 
