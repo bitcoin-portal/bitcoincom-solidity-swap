@@ -47,9 +47,9 @@ contract LiquidityMaker is LiquidityHelper {
 
     /**
      * @dev
-     * Optimal one-sided supply
-     * 1. Swaps optimal amount from token A to token B
-     * 2. Adds liquidity for token A and token B pair
+     * Optimal one-sided supply using ETH
+     * 1. Swaps optimal amount from ETH to ERC20
+     * 2. Adds liquidity for ETH and Token pair
     */
     function makeLiquidity(
         address _tokenAddress,
@@ -78,9 +78,9 @@ contract LiquidityMaker is LiquidityHelper {
 
     /**
      * @dev
-     * Optimal one-sided supply
-     * 1. Swaps optimal amount from token A to token B
-     * 2. Adds liquidity for token A and token B pair
+     * Optimal one-sided supply using ERC20
+     * 1. Swaps optimal amount from ERC20-A to ERC20-B
+     * 2. Adds liquidity for _tokenA and _tokenB pair
     */
     function makeLiquidityDual(
         address _tokenA,
@@ -168,6 +168,11 @@ contract LiquidityMaker is LiquidityHelper {
         return swapAmount;
     }
 
+    /**
+     * @dev
+     * Uses swapExactTokensForTokens to split provided value
+     * 1. Swaps optimal amount from _tokenIn to _tokenOut
+    */
     function _swapTokens(
         address _tokenIn,
         address _tokenOut,
@@ -194,6 +199,11 @@ contract LiquidityMaker is LiquidityHelper {
         );
     }
 
+    /**
+     * @dev
+     * Adds liquidity for _tokenA and _tokenB pair
+     * can send LP tokens to _beneficiary address
+    */
     function _addLiquidity(
         address _tokenA,
         address _tokenB,
