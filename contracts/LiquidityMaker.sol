@@ -138,7 +138,7 @@ contract LiquidityMaker is LiquidityHelper {
             ? getSwapAmount(reserve0, _initialAmountA)
             : getSwapAmount(reserve1, _initialAmountA);
 
-        uint256[] memory swapResults = _swap(
+        uint256[] memory swapResults = _swapTokens(
             _tokenA,
             _tokenB,
             swapAmount,
@@ -168,7 +168,7 @@ contract LiquidityMaker is LiquidityHelper {
         return swapAmount;
     }
 
-    function _swap(
+    function _swapTokens(
         address _tokenIn,
         address _tokenOut,
         uint256 _swapAmountIn,
@@ -229,6 +229,11 @@ contract LiquidityMaker is LiquidityHelper {
         return liquidity;
     }
 
+    /**
+     * @dev
+     * Read address of the pair
+     * by calling FACTORY contract
+    */
     function _getPair(
         address _tokenA,
         address _tokenB
@@ -247,7 +252,8 @@ contract LiquidityMaker is LiquidityHelper {
 
     /**
      * @dev
-     *
+     * Allows to wrap Ether
+     * by calling WETH contract
     */
     function _wrapEther(
         uint256 _amount
