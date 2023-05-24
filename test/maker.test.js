@@ -3,11 +3,8 @@ const Weth = artifacts.require("WrappedEther");
 const Maker = artifacts.require("LiquidityMaker");
 const Factory = artifacts.require("ISwapsFactory");
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
-// const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 const { expectRevert } = require('@openzeppelin/test-helpers');
 require("./utils");
-
-// const BN = web3.utils.BN;
 
 const tokens = (value) => {
     return web3.utils.toWei(value.toString());
