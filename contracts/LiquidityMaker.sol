@@ -181,7 +181,7 @@ contract LiquidityMaker is LiquidityHelper {
         uint256 _swapAmountIn,
         uint256 _expectedAmountOut
     )
-        internal
+        private
         returns (uint256[] memory)
     {
         ISwapsERC20(_tokenIn).approve(
@@ -215,7 +215,7 @@ contract LiquidityMaker is LiquidityHelper {
         uint256 _minTokenB,
         address _beneficiary
     )
-        internal
+        private
     {
         ISwapsERC20(_tokenB).approve(
             ROUTER_ADDRESS,
@@ -254,7 +254,7 @@ contract LiquidityMaker is LiquidityHelper {
         address _tokenA,
         address _tokenB
     )
-        internal
+        private
         view
         returns (ISwapsPair)
     {
