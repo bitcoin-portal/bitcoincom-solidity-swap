@@ -172,6 +172,7 @@ contract LiquidityMaker is LiquidityHelper {
      * @dev
      * Uses swapExactTokensForTokens to split provided value
      * 1. Swaps optimal amount from _tokenIn to _tokenOut
+     * return swap amounts as a result (input and ouput)
     */
     function _swapTokens(
         address _tokenIn,
