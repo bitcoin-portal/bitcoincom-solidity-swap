@@ -3,6 +3,7 @@
 require("@nomiclabs/hardhat-truffle5");
 require("hardhat-gas-reporter");
 require("@nomiclabs/hardhat-ethers");
+require("solidity-coverage");
 
 module.exports = {
     defaultNetwork: "hardhat",
@@ -13,10 +14,9 @@ module.exports = {
             blockGasLimit: 100000000,
             callGasLimit: 100000000,
             forking: {
-                url: "https://eth-mainnet.g.alchemy.com/v2/GIE2WO3ORzSLZD9CYyh9wsuAmeiYb_NV",
-                blockNumber: 16827867, //block from 14/03/22
-                //blockNumber: 16518560, // blockNumber: 15949225,//  15939225 16775573
-                enabled: false
+                url: "https://eth-mainnet.g.alchemy.com/v2/J3bTM7KLiYYwh8Ar_VBXuo-oLlGTx7od",
+                blockNumber: 17274000,
+                enabled: true
             }
         },
         live: {
