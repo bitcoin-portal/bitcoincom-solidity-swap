@@ -98,8 +98,6 @@ contract LiquidityMaker is LiquidityHelper {
         uint256 _minimumLiquidityB
     )
         external
-        payable
-        returns (uint256)
     {
         _safeTransferFrom(
             _tokenA,
@@ -108,7 +106,7 @@ contract LiquidityMaker is LiquidityHelper {
             _initialAmountA
         );
 
-        return _makeLiquidity(
+        _makeLiquidity(
             _tokenA,
             _tokenB,
             _initialAmountA,
