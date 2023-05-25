@@ -1,7 +1,7 @@
 const Token = artifacts.require("Token");
 const Weth = artifacts.require("WrappedEther");
 const Maker = artifacts.require("LiquidityMaker");
-const Factory = artifacts.require("ISwapsFactory");
+// const Factory = artifacts.require("ISwapsFactory");
 const helpers = require("@nomicfoundation/hardhat-network-helpers");
 const { expectRevert } = require('@openzeppelin/test-helpers');
 require("./utils");
@@ -9,12 +9,6 @@ require("./utils");
 const tokens = (value) => {
     return web3.utils.toWei(value.toString());
 }
-
-const ONE_ETH = tokens(1);
-const FOUR_ETH = tokens(4);
-const FIVE_ETH = tokens(5);
-const NINE_ETH = tokens(9);
-const HALF_ETH = tokens(0.5);
 
 const ethPrice = 1800;
 const testBlock = 17274000;
@@ -62,8 +56,8 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
     let dai;
     let weth;
     let maker;
-    let verse;
-    let verseX;
+    // let verse;
+    // let verseX;
 
     beforeEach(async () => {
         maker = await Maker.new(
@@ -105,7 +99,7 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
 
     describe("Initial liquidity functionality", () => {
 
-        it("should be able to provide liquidity (WETH/DAI) using WEHT", async () => {
+        it("should be able to provide liquidity (WETH/DAI) using WETH", async () => {
 
             const depositor = alice;
 
@@ -204,6 +198,7 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 tokenAmountB
             );
 
+            // should send LPs to depositor
             assert.equal(
                 addedTo,
                 depositor
@@ -214,26 +209,83 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 parseInt(tokenAmountA)
             );
 
+            // should issue some LPs
             assert.isAtLeast(
                 parseInt(tokenAmountLP),
                 0
+            );
+
+            const contractDaiBalance = await dai.balanceOf(
+                maker.address
+            );
+
+            const contractWethBalance = await weth.balanceOf(
+                maker.address
+            );
+
+            // should not have any DAI leftover in contract
+            assert.equal(
+                parseInt(contractDaiBalance),
+                0
+            );
+
+            // expect some WETH left in the contract as dust
+            assert.isAtLeast(
+                parseInt(contractWethBalance),
+                1
+            );
+
+            // perform cleanup
+            await maker.cleanUp(
+                MAINNET_WRAPPED_ETH
+            );
+
+            const wethBalanceAfterCleanup = await weth.balanceOf(
+                maker.address
+            );
+
+            // should not have any leftover
+            assert.equal(
+                parseInt(wethBalanceAfterCleanup),
+                0
+            );
+        });
+
+        it("should not allow to send ETH directly to the contract", async () => {
+            const error = "function selector was not recognized and there's no fallback nor receive function";
+            await expectRevert(
+                maker.sendTransaction({
+                    from: owner,
+                    value: tokens(1)
+                }),
+                `Returned error: Error: Transaction reverted: ${error}`
             );
         });
 
         it("should be able to provide liquidity (WETH/DAI) using DAI", async () => {
 
             const depositor = alice;
-            const depositAmountDai = tokens(1820);
-            const minEthExpected = HALF_ETH;
+            const daiAmount = 1800;
+            const slipLastSwap = 10;
+            const daiAmountDeposit = tokens(daiAmount);
+
+            const ethAmount = (daiAmount - slipLastSwap) / ethPrice;
+            const TOLERANCE = 0.99;
+
+            const expectedAmountDai = tokens(daiAmount / 2);
+            const expectedAmountEth = tokens(ethAmount / 2);
+
+            const minLiquidityEth = tokens(ethAmount / 2 * TOLERANCE);
+            const minLiquidityDai = tokens(daiAmount / 2 * TOLERANCE);
 
             await getSomeDai(
                 depositor,
-                depositAmountDai
+                daiAmountDeposit
             );
 
             await dai.approve(
                 maker.address,
-                depositAmountDai,
+                daiAmountDeposit,
                 {
                     from: depositor
                 }
@@ -242,13 +294,390 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             await maker.makeLiquidityDual(
                 MAINNET_DAI_TOKEN,
                 MAINNET_WRAPPED_ETH,
-                depositAmountDai,
-                minEthExpected,
-                0,
-                0,
+                daiAmountDeposit,
+                expectedAmountEth,
+                minLiquidityDai,
+                minLiquidityEth,
                 {
                     from: depositor
                 }
+            );
+
+            const { amountIn, amountOut } = await getLastEvent(
+                "SwapResults",
+                maker
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(expectedAmountDai)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(expectedAmountEth)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(minLiquidityDai)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(minLiquidityEth)
+            );
+
+            const {
+                tokenAmountA,
+                tokenAmountB,
+                tokenAmountLP,
+                addedTo
+            } = await getLastEvent(
+                "LiquidityAdded",
+                maker
+            );
+
+            assert.equal(
+                amountOut,
+                tokenAmountB
+            );
+
+            // should send LPs to depositor
+            assert.equal(
+                addedTo,
+                depositor
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(tokenAmountA)
+            );
+
+            // should issue some LPs
+            assert.isAtLeast(
+                parseInt(tokenAmountLP),
+                0
+            );
+
+            const contractDaiBalance = await dai.balanceOf(
+                maker.address
+            );
+
+            // expect some leftover of DAI in contract
+            assert.isAbove(
+                parseInt(contractDaiBalance),
+                0
+            );
+
+            // cleanup DAI dust
+            await maker.cleanUp(
+                MAINNET_DAI_TOKEN
+            );
+
+            const contractDaiBalanceAfter = await dai.balanceOf(
+                maker.address
+            );
+
+            // should not have any leftover
+            assert.equal(
+                parseInt(contractDaiBalanceAfter),
+                0
+            );
+
+            const contractWethBalance = await weth.balanceOf(
+                maker.address
+            );
+
+            // should not have any WETH leftover in contract
+            assert.equal(
+                parseInt(contractWethBalance),
+                0
+            );
+        });
+
+        it("should be able to provide liquidity (WETH/DAI) using ETH", async () => {
+
+            const depositor = alice;
+
+            const ethAmount = 1;
+            const daiAmount = ethAmount * ethPrice;
+            const TOLERANCE = 0.99;
+
+            const depositAmountEth = tokens(ethAmount);
+            const expectedAmountDai = tokens(daiAmount / 2);
+            const expectedAmountEth = tokens(ethAmount / 2);
+
+            const minLiquidityEth = tokens(ethAmount / 2 * TOLERANCE);
+            const minLiquidityDai = tokens(daiAmount / 2 * TOLERANCE);
+
+            const balanceBefore = await weth.balanceOf(
+                depositor
+            );
+
+            await weth.send(
+                depositAmountEth,
+                {
+                    from: depositor
+                }
+            );
+
+            const balanceAfter = await weth.balanceOf(
+                depositor
+            );
+
+            const balanceChange = balanceAfter.sub(
+                balanceBefore
+            );
+
+            assert.equal(
+                balanceChange.toString(),
+                depositAmountEth.toString()
+            );
+
+            await weth.approve(
+                maker.address,
+                depositAmountEth,
+                {
+                    from: depositor
+                }
+            );
+
+            await maker.makeLiquidity(
+                MAINNET_DAI_TOKEN,
+                expectedAmountDai,
+                minLiquidityEth,
+                minLiquidityDai,
+                {
+                    from: depositor,
+                    value: depositAmountEth
+                }
+            );
+
+            const { amountIn, amountOut } = await getLastEvent(
+                "SwapResults",
+                maker
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(expectedAmountEth)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(expectedAmountDai)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(minLiquidityEth)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(minLiquidityDai)
+            );
+
+            const {
+                tokenAmountA,
+                tokenAmountB,
+                tokenAmountLP,
+                addedTo
+            } = await getLastEvent(
+                "LiquidityAdded",
+                maker
+            );
+
+            assert.equal(
+                amountOut,
+                tokenAmountB
+            );
+
+            // should send LPs to depositor
+            assert.equal(
+                addedTo,
+                depositor
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(tokenAmountA)
+            );
+
+            // should issue some LPs
+            assert.isAtLeast(
+                parseInt(tokenAmountLP),
+                0
+            );
+
+            const contractDaiBalance = await dai.balanceOf(
+                maker.address
+            );
+
+            const contractWethBalance = await weth.balanceOf(
+                maker.address
+            );
+
+            // should not have any DAI leftover in contract
+            assert.equal(
+                parseInt(contractDaiBalance),
+                0
+            );
+
+            // expect some WETH left in the contract as dust
+            assert.isAtLeast(
+                parseInt(contractWethBalance),
+                1
+            );
+
+            // perform cleanup
+            await maker.cleanUp(
+                MAINNET_WRAPPED_ETH
+            );
+
+            const wethBalanceAfterCleanup = await weth.balanceOf(
+                maker.address
+            );
+
+            // should not have any leftover
+            assert.equal(
+                parseInt(wethBalanceAfterCleanup),
+                0
+            );
+        });
+
+        it("should be able to provide liquidity (WETH/DAI) using DAI", async () => {
+
+            const depositor = alice;
+            const daiAmount = 1800;
+            const slipLastSwap = 10;
+            const daiAmountDeposit = tokens(daiAmount);
+
+            const ethAmount = (daiAmount - slipLastSwap) / ethPrice;
+            const TOLERANCE = 0.99;
+
+            const expectedAmountDai = tokens(daiAmount / 2);
+            const expectedAmountEth = tokens(ethAmount / 2);
+
+            const minLiquidityEth = tokens(ethAmount / 2 * TOLERANCE);
+            const minLiquidityDai = tokens(daiAmount / 2 * TOLERANCE);
+
+            await getSomeDai(
+                depositor,
+                daiAmountDeposit
+            );
+
+            await dai.approve(
+                maker.address,
+                daiAmountDeposit,
+                {
+                    from: depositor
+                }
+            );
+
+            await maker.makeLiquidityDual(
+                MAINNET_DAI_TOKEN,
+                MAINNET_WRAPPED_ETH,
+                daiAmountDeposit,
+                expectedAmountEth,
+                minLiquidityDai,
+                minLiquidityEth,
+                {
+                    from: depositor
+                }
+            );
+
+            const { amountIn, amountOut } = await getLastEvent(
+                "SwapResults",
+                maker
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(expectedAmountDai)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(expectedAmountEth)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(minLiquidityDai)
+            );
+
+            assert.isAtLeast(
+                parseInt(amountOut),
+                parseInt(minLiquidityEth)
+            );
+
+            const {
+                tokenAmountA,
+                tokenAmountB,
+                tokenAmountLP,
+                addedTo
+            } = await getLastEvent(
+                "LiquidityAdded",
+                maker
+            );
+
+            assert.equal(
+                amountOut,
+                tokenAmountB
+            );
+
+            // should send LPs to depositor
+            assert.equal(
+                addedTo,
+                depositor
+            );
+
+            assert.isAtLeast(
+                parseInt(amountIn),
+                parseInt(tokenAmountA)
+            );
+
+            // should issue some LPs
+            assert.isAtLeast(
+                parseInt(tokenAmountLP),
+                0
+            );
+
+            const contractDaiBalance = await dai.balanceOf(
+                maker.address
+            );
+
+            // expect some leftover of DAI in contract
+            assert.isAbove(
+                parseInt(contractDaiBalance),
+                0
+            );
+
+            // cleanup DAI dust
+            await maker.cleanUp(
+                MAINNET_DAI_TOKEN
+            );
+
+            const contractDaiBalanceAfter = await dai.balanceOf(
+                maker.address
+            );
+
+            // should not have any leftover
+            assert.equal(
+                parseInt(contractDaiBalanceAfter),
+                0
+            );
+
+            const contractWethBalance = await weth.balanceOf(
+                maker.address
+            );
+
+            // should not have any WETH leftover in contract
+            assert.equal(
+                parseInt(contractWethBalance),
+                0
             );
         });
     });
