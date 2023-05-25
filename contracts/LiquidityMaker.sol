@@ -29,6 +29,11 @@ contract LiquidityMaker is LiquidityHelper {
         address indexed addedTo
     );
 
+    event CleanUp(
+        uint256 tokenAmount,
+        ISwapsERC20 indexed tokenAddress
+    );
+
     constructor(
         ISwapsRouter _router,
         ISwapsFactory _factory
@@ -272,5 +277,31 @@ contract LiquidityMaker is LiquidityHelper {
         private
     {
         WETH.deposit{value: _amount}();
+    }
+
+    /**
+     * @dev
+     * Allows to cleanup any tokens stuck
+     * in the contract as leftover dust or
+     * if accidentally sent to the contract
+    */
+    function cleanUp(
+        ISwapsERC20 _token
+    )
+        external
+    {
+        uint256 balance = _token.balanceOf(
+            address(this)
+        );
+
+        _token.transfer(
+            FACTORY.feeTo(),
+            balance
+        );
+
+        emit CleanUp(
+            balance,
+            _token
+        );
     }
 }
