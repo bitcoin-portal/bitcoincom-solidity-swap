@@ -28,8 +28,9 @@
 		"migrate-all": "npm run migrate-weth && npm run migrate-uniswap-factory && npm run migrate-uniswap-router && npm run migrate-main",
 		"bridge": "ethereum-bridge -H localhost:9545 -a 1 --dev",
 		"make-chain-live": "npx hardhat node --fork https://eth-mainnet.g.alchemy.com/v2/J3bTM7KLiYYwh8Ar_VBXuo-oLlGTx7od --fork-block-number 17274000 --port 9545",
-		"test-live" : "npx hardhat test --network live test/wraps.test.js",
-		"test-liquidity-maker" : "npx hardhat test --network live test/maker.test.js"
+		"test-live": "npx hardhat test --network live test/wraps.test.js",
+		"test-liquidity-maker": "npx hardhat test --network live test/maker.test.js",
+		"test-liquidity-coverage": "npx hardhat coverage --network hardhat --testfiles test/maker.test.js"
 	},
 	"keywords": [
 		"solidity",
@@ -57,8 +58,10 @@
 		"ethereumjs-util": "^7.0.7",
 		"ethereumjs-wallet": "^1.0.1",
 		"ethers": "^5.5.1",
+		"ganache": "^6.4.5",
 		"ganache-time-traveler": "^1.0.16",
 		"graphlib": "^2.1.8",
+		"hardhat": "2.10.2",
 		"hardhat-gas-reporter": "^1.0.4",
 		"keccak256": "^1.0.2",
 		"lodash.startcase": "^4.4.0",
@@ -70,25 +73,25 @@
 		"rimraf": "^3.0.2",
 		"solhint": "^3.3.6",
 		"solidity-ast": "^0.4.25",
-		"solidity-coverage": "0.8.0-beta.1",
+		"solidity-coverage": "0.8.0",
 		"solidity-docgen": "^0.5.3",
 		"truffle": "^5.4.12",
+		"truffle-plugin-verify": "^0.5.27",
 		"web3": "^1.3.0",
-		"yargs": "^16.2.0",
-        "hardhat": "^2.12.6",
-        "truffle-plugin-verify": "^0.5.27"
+		"yargs": "^16.2.0"
 	},
 	"dependencies": {
+		"@nomicfoundation/hardhat-network-helpers": "^1.0.6",
+		"@nomiclabs/hardhat-ethers": "^2.1.1",
+		"@nomiclabs/hardhat-truffle5": "^2.0.7",
+		"@nomiclabs/hardhat-waffle": "^2.0.3",
+		"@nomiclabs/hardhat-web3": "^2.0.0",
 		"@openzeppelin/contracts": "^4.3.1",
-		"@openzeppelin/test-helpers": "^0.5.13",
-        "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
-        "@nomiclabs/hardhat-ethers": "^2.1.1",
-        "@nomiclabs/hardhat-truffle5": "^2.0.7",
-        "@nomiclabs/hardhat-waffle": "^2.0.3",
-        "@nomiclabs/hardhat-web3": "^2.0.0",
-        "chai": "^4.3.6",
-        "custom-error-test-helper": "^1.0.6",
-        "ethers": "^5.7.1",
-        "web3": "^1.8.0"
+		"@openzeppelin/test-helpers": "^0.5.16",
+		"chai": "^4.3.6",
+		"custom-error-test-helper": "^1.0.6",
+		"ethers": "^5.7.1",
+		"ganache-cli": "^6.12.2",
+		"web3": "^1.8.0"
 	}
 }
