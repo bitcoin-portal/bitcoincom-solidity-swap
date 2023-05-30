@@ -1,5 +1,4 @@
 const Weth = artifacts.require("WrappedEther");
-// const catchRevert = require("./exceptionsHelpers.js").catchRevert;
 const { expectRevert } = require('@openzeppelin/test-helpers');
 require("./utils");
 const BN = web3.utils.BN;

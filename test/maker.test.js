@@ -97,6 +97,195 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
         });
     });
 
+    describe("Reverting state and denial tests", () => {
+        it("should not allow to send ETH directly to the contract", async () => {
+            const error = "function selector was not recognized and there's no fallback nor receive function";
+            await expectRevert(
+                maker.sendTransaction({
+                    from: owner,
+                    value: tokens(1)
+                }),
+                `Returned error: Error: Transaction reverted: ${error}`
+            );
+        });
+
+        it("should not proceed if user did not approve token to be spent by contract", async () => {
+
+            const performApprove = false;
+            const depositor = alice;
+
+            const ethAmount = 1;
+            const daiAmount = ethAmount * ethPrice;
+            const TOLERANCE = 0.99;
+
+            const depositAmountEth = tokens(ethAmount);
+            const expectedAmountDai = tokens(daiAmount / 2);
+
+            const minLiquidityEth = tokens(ethAmount / 2 * TOLERANCE);
+            const minLiquidityDai = tokens(daiAmount / 2 * TOLERANCE);
+
+            const balanceBefore = await weth.balanceOf(
+                depositor
+            );
+
+            await weth.withdraw(
+                balanceBefore,
+                {
+                    from: depositor
+                }
+            );
+
+            await weth.send(
+                depositAmountEth,
+                {
+                    from: depositor
+                }
+            );
+
+            const balanceAfter = await weth.balanceOf(
+                depositor
+            );
+
+            assert.equal(
+                balanceAfter.toString(),
+                depositAmountEth.toString()
+            );
+
+            // for this test performApprove is false
+            if (performApprove == true) {
+                await weth.approve(
+                    maker.address,
+                    depositAmountEth,
+                    {
+                        from: depositor
+                    }
+                );
+            }
+
+            // check that flag is false
+            assert.equal(
+                performApprove,
+                false
+            );
+
+            const allowance = await weth.allowance(
+                depositor,
+                maker.address
+            );
+
+            // double-check allowance is 0
+            assert.equal(
+                parseInt(allowance),
+                0
+            );
+
+            await expectRevert(
+                maker.makeLiquidityDual(
+                    MAINNET_WRAPPED_ETH,
+                    MAINNET_DAI_TOKEN,
+                    depositAmountEth,
+                    expectedAmountDai,
+                    minLiquidityEth,
+                    minLiquidityDai,
+                    {
+                        from: depositor
+                    }
+                ),
+                "LiquidityHelper: CALL_FAILED"
+            );
+        });
+
+        it("should not proceed if user does not have enough funds", async () => {
+
+            const performApprove = true;
+            const depositor = alice;
+
+            const ethAmount = 1;
+            const daiAmount = ethAmount * ethPrice;
+            const TOLERANCE = 0.99;
+
+            const depositAmountEth = tokens(ethAmount);
+            const expectedAmountDai = tokens(daiAmount / 2);
+
+            const minLiquidityEth = tokens(ethAmount / 2 * TOLERANCE);
+            const minLiquidityDai = tokens(daiAmount / 2 * TOLERANCE);
+
+            const balanceBefore = await weth.balanceOf(
+                depositor
+            );
+
+            // make sure depositor does not have any WETH
+            await weth.withdraw(
+                balanceBefore,
+                {
+                    from: depositor
+                }
+            );
+
+            // aquire some WETH
+            await weth.send(
+                depositAmountEth,
+                {
+                    from: depositor
+                }
+            );
+
+            await weth.approve(
+                maker.address,
+                depositAmountEth,
+                {
+                    from: depositor
+                }
+            );
+
+            const allowance = await weth.allowance(
+                depositor,
+                maker.address
+            );
+
+            // check allowance is enough
+            assert.equal(
+                parseInt(allowance),
+                parseInt(depositAmountEth)
+            );
+
+            // send out some weth
+            await weth.transfer(
+                random,
+                minLiquidityEth,
+                {
+                    from: depositor
+                }
+            );
+
+            // now check the balance of depositor
+            const balance = await weth.balanceOf(
+                depositor
+            );
+
+            // make sure depositor does not have enough
+            assert.isBelow(
+                parseInt(balance),
+                parseInt(depositAmountEth)
+            );
+
+            await expectRevert(
+                maker.makeLiquidityDual(
+                    MAINNET_WRAPPED_ETH,
+                    MAINNET_DAI_TOKEN,
+                    depositAmountEth,
+                    expectedAmountDai,
+                    minLiquidityEth,
+                    minLiquidityDai,
+                    {
+                        from: depositor
+                    }
+                ),
+                "LiquidityHelper: CALL_FAILED"
+            );
+        });
+    });
+
     describe("Initial liquidity functionality", () => {
 
         it("should be able to provide liquidity (WETH/DAI) using WETH", async () => {
@@ -251,22 +440,11 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             );
         });
 
-        it("should not allow to send ETH directly to the contract", async () => {
-            const error = "function selector was not recognized and there's no fallback nor receive function";
-            await expectRevert(
-                maker.sendTransaction({
-                    from: owner,
-                    value: tokens(1)
-                }),
-                `Returned error: Error: Transaction reverted: ${error}`
-            );
-        });
-
         it("should be able to provide liquidity (WETH/DAI) using DAI", async () => {
 
             const depositor = alice;
             const daiAmount = 1800;
-            const slipLastSwap = 10;
+            const slipLastSwap = 30;
             const daiAmountDeposit = tokens(daiAmount);
 
             const ethAmount = (daiAmount - slipLastSwap) / ethPrice;

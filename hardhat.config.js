@@ -16,7 +16,7 @@ module.exports = {
             forking: {
                 url: "https://eth-mainnet.g.alchemy.com/v2/J3bTM7KLiYYwh8Ar_VBXuo-oLlGTx7od",
                 blockNumber: 17274000,
-                enabled: true
+                enabled: false
             }
         },
         live: {
