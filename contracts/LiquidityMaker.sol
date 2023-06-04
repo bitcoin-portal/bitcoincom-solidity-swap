@@ -283,7 +283,9 @@ contract LiquidityMaker is LiquidityHelper {
     )
         private
     {
-        WETH.deposit{value: _amount}();
+        WETH.deposit{
+            value: _amount
+        }();
     }
 
     /**
