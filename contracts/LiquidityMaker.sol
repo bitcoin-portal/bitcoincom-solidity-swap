@@ -18,6 +18,8 @@ contract LiquidityMaker is LiquidityHelper {
     ISwapsFactory public immutable FACTORY;
 
     event SwapResults(
+        address tokenIn,
+        address tokenOut,
         uint256 amountIn,
         uint256 amountOut
     );
@@ -26,6 +28,8 @@ contract LiquidityMaker is LiquidityHelper {
         uint256 tokenAmountA,
         uint256 tokenAmountB,
         uint256 tokenAmountLP,
+        address indexed tokenA,
+        address indexed tokenB,
         address indexed addedTo
     );
 
@@ -151,6 +155,8 @@ contract LiquidityMaker is LiquidityHelper {
         );
 
         emit SwapResults(
+            _tokenA,
+            _tokenB,
             swapResults[0],
             swapResults[1]
         );
@@ -240,6 +246,8 @@ contract LiquidityMaker is LiquidityHelper {
             tokenAmountA,
             tokenAmountB,
             tokenAmountLP,
+            _tokenA,
+            _tokenB,
             _beneficiary
         );
     }
