@@ -347,9 +347,23 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 }
             );
 
-            const { amountIn, amountOut } = await getLastEvent(
+            const {
+                tokenIn,
+                tokenOut,
+                amountIn,
+                amountOut
+            } = await getLastEvent(
                 "SwapResults",
                 maker
+            );
+
+            assert.equal(
+                tokenIn,
+                MAINNET_WRAPPED_ETH
+            );
+            assert.equal(
+                tokenOut,
+                MAINNET_DAI_TOKEN
             );
 
             assert.isAtLeast(
@@ -373,6 +387,8 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             );
 
             const {
+                tokenA,
+                tokenB,
                 tokenAmountA,
                 tokenAmountB,
                 tokenAmountLP,
@@ -380,6 +396,15 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             } = await getLastEvent(
                 "LiquidityAdded",
                 maker
+            );
+
+            assert.equal(
+                tokenA,
+                MAINNET_WRAPPED_ETH
+            );
+            assert.equal(
+                tokenB,
+                MAINNET_DAI_TOKEN
             );
 
             assert.equal(
@@ -481,9 +506,23 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 }
             );
 
-            const { amountIn, amountOut } = await getLastEvent(
+            const {
+                tokenIn,
+                tokenOut,
+                amountIn,
+                amountOut
+            } = await getLastEvent(
                 "SwapResults",
                 maker
+            );
+
+            assert.equal(
+                tokenIn,
+                MAINNET_DAI_TOKEN
+            );
+            assert.equal(
+                tokenOut,
+                MAINNET_WRAPPED_ETH
             );
 
             assert.isAtLeast(
@@ -507,6 +546,8 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             );
 
             const {
+                tokenA,
+                tokenB,
                 tokenAmountA,
                 tokenAmountB,
                 tokenAmountLP,
@@ -514,6 +555,15 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             } = await getLastEvent(
                 "LiquidityAdded",
                 maker
+            );
+
+            assert.equal(
+                tokenA,
+                MAINNET_DAI_TOKEN
+            );
+            assert.equal(
+                tokenB,
+                MAINNET_WRAPPED_ETH
             );
 
             assert.equal(
@@ -632,9 +682,23 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 }
             );
 
-            const { amountIn, amountOut } = await getLastEvent(
+            const {
+                tokenIn,
+                tokenOut,
+                amountIn,
+                amountOut
+            } = await getLastEvent(
                 "SwapResults",
                 maker
+            );
+
+            assert.equal(
+                tokenIn,
+                MAINNET_WRAPPED_ETH
+            );
+            assert.equal(
+                tokenOut,
+                MAINNET_DAI_TOKEN
             );
 
             assert.isAtLeast(
@@ -658,6 +722,8 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             );
 
             const {
+                tokenA,
+                tokenB,
                 tokenAmountA,
                 tokenAmountB,
                 tokenAmountLP,
@@ -665,6 +731,15 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             } = await getLastEvent(
                 "LiquidityAdded",
                 maker
+            );
+
+            assert.equal(
+                tokenA,
+                MAINNET_WRAPPED_ETH
+            );
+            assert.equal(
+                tokenB,
+                MAINNET_DAI_TOKEN
             );
 
             assert.equal(
@@ -729,7 +804,7 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
 
             const depositor = alice;
             const daiAmount = 1800;
-            const slipLastSwap = 10;
+            const slipLastSwap = 20;
             const daiAmountDeposit = tokens(daiAmount);
 
             const ethAmount = (daiAmount - slipLastSwap) / ethPrice;
@@ -766,9 +841,23 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
                 }
             );
 
-            const { amountIn, amountOut } = await getLastEvent(
+            const {
+                tokenIn,
+                tokenOut,
+                amountIn,
+                amountOut
+            } = await getLastEvent(
                 "SwapResults",
                 maker
+            );
+
+            assert.equal(
+                tokenIn,
+                MAINNET_DAI_TOKEN
+            );
+            assert.equal(
+                tokenOut,
+                MAINNET_WRAPPED_ETH
             );
 
             assert.isAtLeast(
@@ -792,6 +881,8 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             );
 
             const {
+                tokenA,
+                tokenB,
                 tokenAmountA,
                 tokenAmountB,
                 tokenAmountLP,
@@ -799,6 +890,15 @@ contract("LiquidityMaker", ([owner, alice, bob, random]) => {
             } = await getLastEvent(
                 "LiquidityAdded",
                 maker
+            );
+
+            assert.equal(
+                tokenA,
+                MAINNET_DAI_TOKEN
+            );
+            assert.equal(
+                tokenB,
+                MAINNET_WRAPPED_ETH
             );
 
             assert.equal(
