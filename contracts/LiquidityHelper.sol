@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: BCOM
+// SPDX-License-Identifier: -- BCOM --
 
-pragma solidity ^0.8.19;
+pragma solidity =0.8.23;
 
 import "./IERC20.sol";
 
