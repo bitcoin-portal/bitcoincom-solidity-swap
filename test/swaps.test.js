@@ -247,7 +247,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it("should have corret token0 and token1 values in event", async () => {
+        it("should have correct token0 and token1 values in event", async () => {
 
             // pair already generated in previous test
 
@@ -1543,7 +1543,7 @@ contract("Swaps", ([owner, alice, bob, random]) => {
             );
         });
 
-        it("transferFrom should add correct amount to reciever", async () => {
+        it("transferFrom should add correct amount to receiver", async () => {
             const transferValue = ONE_TOKEN;
             const expectedRecipient = alice;
             const balanceBefore = await pair.balanceOf(alice);
