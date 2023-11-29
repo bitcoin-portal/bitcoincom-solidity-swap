@@ -2,30 +2,8 @@
 
 pragma solidity =0.8.23;
 
-import "./ISwapsPair.sol";
+import "./IVerseFarm.sol";
 import "./ISwapsERC20.sol";
-
-interface IVerseFarm {
-
-    function earned(
-        address _farmerAdders
-    )
-        external
-        view
-        returns (uint256);
-
-    function balanceOf(
-        address _farmerAdders
-    )
-        external
-        view
-        returns (uint256);
-
-    function stakeToken()
-        external
-        view
-        returns (ISwapsPair);
-}
 
 contract VerseBalances {
 
@@ -53,7 +31,19 @@ contract VerseBalances {
         VERSE_STAKING = _verseStaking;
     }
 
-    function getCombinedTotalVerse(
+    function getTotalVerse(
+        address _verseHolderAddress
+    )
+        external
+        view
+        returns (uint256 totalVerse)
+    {
+        (totalVerse, , , , , , ) = getTotalVerseBreakDown(
+            _verseHolderAddress
+        );
+    }
+
+    function getTotalVerseBreakDown(
         address _verseHolderAddress
     )
         public
@@ -63,18 +53,26 @@ contract VerseBalances {
             uint256 verseLiquid,
             uint256 verseStaked,
             uint256 verseInFarms,
-            uint256 verseInPools
+            uint256 verseInPools,
+            uint256 verseEarnedStaked,
+            uint256 verseEarnedFarmed
         )
     {
         verseLiquid = calculateLiquidVerse(
             _verseHolderAddress
         );
 
-        verseStaked = calculateVerseInStaking(
+        (
+            verseStaked,
+            verseEarnedStaked
+        ) = calculateVerseInStaking(
             _verseHolderAddress
         );
 
-        verseInFarms = calculateVerseInFarms(
+        (
+            verseInFarms,
+            verseEarnedFarmed
+        ) = calculateVerseInFarms(
             _verseHolderAddress
         );
 
@@ -85,7 +83,9 @@ contract VerseBalances {
         totalVerse = verseLiquid
             + verseStaked
             + verseInFarms
-            + verseInPools;
+            + verseInPools
+            + verseEarnedStaked
+            + verseEarnedFarmed;
     }
 
     function calculateLiquidVerse(
@@ -105,23 +105,18 @@ contract VerseBalances {
     )
         public
         view
-        returns (uint256 verseAmount)
+        returns (
+            uint256 verseStaked,
+            uint256 verseEarned
+        )
     {
-        uint256 verseEarned = VERSE_STAKING.earned(
+        verseEarned = VERSE_STAKING.earned(
             _lpTokenHolderAddress
         );
 
-        uint256 verseStaked = VERSE_STAKING.balanceOf(
+        verseStaked = VERSE_STAKING.balanceOf(
             _lpTokenHolderAddress
         );
-
-        if (verseEarned > 0) {
-            verseAmount += verseEarned;
-        }
-
-        if (verseStaked > 0) {
-            verseAmount += verseStaked;
-        }
     }
 
     function calculateVerseInFarms(
@@ -129,16 +124,25 @@ contract VerseBalances {
     )
         public
         view
-        returns (uint256 verseAmount)
+        returns (
+            uint256 verseInFarms,
+            uint256 verseEarned
+        )
     {
         uint256 i;
         uint256 l = FARM_COUNT;
 
-        for (i; i < l;) {
-            verseAmount += calculateVerseInFarm(
+        while (i < l) {
+            (
+                uint256 inFarmAmount,
+                uint256 earnedAmount
+            ) = calculateVerseInFarm(
                 verseFarms[i],
                 _lpTokenHolderAddress
             );
+
+            verseInFarms += inFarmAmount;
+            verseEarned += earnedAmount;
 
             unchecked {
                 ++i;
@@ -152,9 +156,12 @@ contract VerseBalances {
     )
         public
         view
-        returns (uint256 verseAmount)
+        returns (
+            uint256 verseInFarm,
+            uint256 verseEarned
+        )
     {
-        uint256 verseEarned = _verseFarm.earned(
+        verseEarned = _verseFarm.earned(
             _lpTokenHolderAddress
         );
 
@@ -162,12 +169,10 @@ contract VerseBalances {
             _lpTokenHolderAddress
         );
 
-        uint256 verseInLP = _calculateVerseInLP(
+        verseInFarm = _calculateVerseInLP(
             _verseFarm.stakeToken(),
             verseLP
         );
-
-        return verseInLP + verseEarned;
     }
 
     function calculateVerseInPools(
@@ -180,7 +185,7 @@ contract VerseBalances {
         uint256 i;
         uint256 l = LP_COUNT;
 
-        for (i; i < l;) {
+        while (i < l) {
             verseAmount += calculateVerseInLP(
                 lpPairs[i],
                 _lpTokenHolderAddress
@@ -203,7 +208,7 @@ contract VerseBalances {
         uint256 i;
         uint256 l = _lpTokenAddress.length;
 
-        for (i; i < l;) {
+        while (i < l) {
             verseAmount += calculateVerseInLP(
                 _lpTokenAddress[i],
                 _lpTokenHolderAddress
