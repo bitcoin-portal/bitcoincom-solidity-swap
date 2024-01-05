@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BCOM
+IERC20.sol// SPDX-License-Identifier: BCOM
 
 pragma solidity =0.8.19;
 
