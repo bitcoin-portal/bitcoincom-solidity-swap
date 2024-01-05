@@ -1,3 +1,4 @@
+npm run chain
 # bitcoincom-solidity-swap
 
 This repository contains smart-contracts for the swap between token A and token B or
