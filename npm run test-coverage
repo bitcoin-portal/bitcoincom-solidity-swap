@@ -1,0 +1,6 @@
+
+npm run chain
+npm run test-wraps
+npm run test-token
+npm run test-coverage
+npm run test-swaps
