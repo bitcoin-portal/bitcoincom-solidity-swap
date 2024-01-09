@@ -38,12 +38,12 @@ npm run test-swaps
 
 🧪 To generate test-coverage report simply run this command (without starting local chain)
 
-```
+npm run test-coverage```
 npm run test-coverage
-```
-
+`npm run test-coverage``
+npm run test-coverage
 🧪 expected-latest results:
-```
+``npm run test-coverage`
 ---------------------|----------|----------|----------|----------|----------------|
 File                 |  % Stmts | % Branch |  % Funcs |  % Lines |Uncovered Lines |
 ---------------------|----------|----------|----------|----------|----------------|
