@@ -5,19 +5,45 @@ pragma solidity =0.8.23;
 import "./IVerseFarm.sol";
 import "./ISwapsERC20.sol";
 
+interface ITeamAllocation {
+
+    function earnedA(
+        address _walletAddress
+    )
+        external
+        view
+        returns (uint256);
+
+    function unlockable(
+        address _walletAddress
+    )
+        external
+        view
+        returns (uint256 totalAmount);
+}
+
 contract VerseBalances {
 
     ISwapsPair[] public lpPairs;
     IVerseFarm[] public verseFarms;
 
-    ISwapsERC20 public immutable VERSE_TOKEN;
     IVerseFarm public immutable VERSE_STAKING;
+    ISwapsERC20 public immutable VERSE_TOKEN;
 
     uint256 public immutable LP_COUNT;
     uint256 public immutable FARM_COUNT;
 
+    address public contractSetter;
+    ITeamAllocation public teamAllocation;
+
+    IVerseFarm emptyFarm = IVerseFarm(
+        address(0x0)
+    );
+
     constructor(
         IVerseFarm _verseStaking,
+        ISwapsERC20 _verseToken,
+        ITeamAllocation _teamAllocation,
         ISwapsPair[] memory _lpTokens,
         IVerseFarm[] memory _verseFarms
     ) {
@@ -27,8 +53,31 @@ contract VerseBalances {
         LP_COUNT = _lpTokens.length;
         FARM_COUNT = _verseFarms.length;
 
-        VERSE_TOKEN = _verseStaking.stakeToken();
-        VERSE_STAKING = _verseStaking;
+        teamAllocation = _teamAllocation;
+        contractSetter = msg.sender;
+
+        if (_verseStaking == emptyFarm) {
+            VERSE_TOKEN = _verseToken;
+            VERSE_STAKING = emptyFarm;
+        } else {
+            VERSE_TOKEN = _verseStaking.stakeToken();
+            VERSE_STAKING = _verseStaking;
+        }
+    }
+
+    function updateTeamAllocation(
+        address _newTeamAllocation
+    )
+        external
+    {
+        require(
+            msg.sender == contractSetter,
+            "VerseBalances: INVALID_SENDER"
+        );
+
+        teamAllocation = ITeamAllocation(
+            _newTeamAllocation
+        );
     }
 
     function getTotalVerse(
@@ -38,7 +87,16 @@ contract VerseBalances {
         view
         returns (uint256 totalVerse)
     {
-        (totalVerse, , , , , , ) = getTotalVerseBreakDown(
+        (
+            totalVerse
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+            ,
+        ) = getTotalVerseBreakDown(
             _verseHolderAddress
         );
     }
@@ -55,7 +113,8 @@ contract VerseBalances {
             uint256 verseInFarms,
             uint256 verseInPools,
             uint256 verseEarnedStaked,
-            uint256 verseEarnedFarmed
+            uint256 verseEarnedFarmed,
+            uint256 verseInTeamAllocation
         )
     {
         verseLiquid = calculateLiquidVerse(
@@ -80,12 +139,28 @@ contract VerseBalances {
             _verseHolderAddress
         );
 
+        verseInTeamAllocation = calculateTeamVerse(
+            _verseHolderAddress
+        );
+
         totalVerse = verseLiquid
             + verseStaked
             + verseInFarms
             + verseInPools
             + verseEarnedStaked
-            + verseEarnedFarmed;
+            + verseEarnedFarmed
+            + verseInTeamAllocation;
+    }
+
+    function calculateTeamVerse(
+        address _verseHolder
+    )
+        public
+        view
+        returns (uint256 verseAmount)
+    {
+        return teamAllocation.earnedA(_verseHolder)
+            + teamAllocation.unlockable(_verseHolder);
     }
 
     function calculateLiquidVerse(
@@ -110,6 +185,13 @@ contract VerseBalances {
             uint256 verseEarned
         )
     {
+        if (VERSE_STAKING == emptyFarm) {
+            return (
+                verseStaked,
+                verseEarned
+            );
+        }
+
         verseEarned = VERSE_STAKING.earned(
             _lpTokenHolderAddress
         );
@@ -161,6 +243,13 @@ contract VerseBalances {
             uint256 verseEarned
         )
     {
+        if (VERSE_STAKING == emptyFarm) {
+            return (
+                verseInFarm,
+                verseEarned
+            );
+        }
+
         verseEarned = _verseFarm.earned(
             _lpTokenHolderAddress
         );
