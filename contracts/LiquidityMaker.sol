@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: BCOM
+// SPDX-License-Identifier: -- BCOM --
 
-pragma solidity ^0.8.19;
+pragma solidity =0.8.23;
 
 import "./IWETH.sol";
 import "./ISwapsPair.sol";
@@ -18,12 +18,24 @@ contract LiquidityMaker is LiquidityHelper {
     ISwapsFactory public immutable FACTORY;
 
     event SwapResults(
+        address tokenIn,
+        address tokenOut,
         uint256 amountIn,
-        uint256 amountOUt
+        uint256 amountOut
     );
 
     event LiquidityAdded(
-        uint256 amountAdded
+        uint256 tokenAmountA,
+        uint256 tokenAmountB,
+        uint256 tokenAmountLP,
+        address indexed tokenA,
+        address indexed tokenB,
+        address indexed addedTo
+    );
+
+    event CleanUp(
+        uint256 tokenAmount,
+        ISwapsERC20 indexed tokenAddress
     );
 
     constructor(
@@ -46,15 +58,15 @@ contract LiquidityMaker is LiquidityHelper {
 
     /**
      * @dev
-     * Optimal one-sided supply
-     * 1. Swaps optimal amount from token A to token B
-     * 2. Adds liquidity for token A and token B pair
+     * Optimal one-sided supply using ETH
+     * 1. Swaps optimal amount from ETH to ERC20
+     * 2. Adds liquidity for ETH and Token pair
     */
     function makeLiquidity(
-        address _tokenB,
-        uint256 _expectedAmountB,
-        uint256 _minEther,
-        uint256 _minToken
+        address _tokenAddress,
+        uint256 _expectedTokenAmount,
+        uint256 _minimumLiquidityEther,
+        uint256 _minimumLiquidityToken
     )
         external
         payable
@@ -66,65 +78,57 @@ contract LiquidityMaker is LiquidityHelper {
 
         return _makeLiquidity(
             WETH_ADDRESS,
-            _tokenB,
+            _tokenAddress,
             msg.value,
-            _expectedAmountB,
-            _minEther,
-            _minToken,
+            _expectedTokenAmount,
+            _minimumLiquidityEther,
+            _minimumLiquidityToken,
             msg.sender
         );
     }
 
     /**
      * @dev
-     * Optimal one-sided supply
-     * 1. Swaps optimal amount from token A to token B
-     * 2. Adds liquidity for token A and token B pair
+     * Optimal one-sided supply using ERC20
+     * 1. Swaps optimal amount from ERC20-A to ERC20-B
+     * 2. Adds liquidity for _tokenA and _tokenB pair
     */
     function makeLiquidityDual(
         address _tokenA,
         address _tokenB,
-        uint256 _depositAmountA,
+        uint256 _initialAmountA,
         uint256 _expectedAmountB,
-        uint256 _minTokenA,
-        uint256 _minTokenB
+        uint256 _minimumLiquidityA,
+        uint256 _minimumLiquidityB
     )
         external
-        payable
-        returns (uint256)
     {
         _safeTransferFrom(
             _tokenA,
             msg.sender,
             address(this),
-            _depositAmountA
+            _initialAmountA
         );
 
-        return _makeLiquidity(
+        _makeLiquidity(
             _tokenA,
             _tokenB,
-            _depositAmountA,
+            _initialAmountA,
             _expectedAmountB,
-            _minTokenA,
-            _minTokenB,
+            _minimumLiquidityA,
+            _minimumLiquidityB,
             msg.sender
         );
     }
 
-    /**
-     * @dev
-     * Optimal one-sided supply
-     * 1. Swaps optimal amount from token A to token B
-     * 2. Adds liquidity for token A and token B pair
-    */
     function _makeLiquidity(
         address _tokenA,
         address _tokenB,
-        uint256 _depositAmountA,
+        uint256 _initialAmountA,
         uint256 _expectedAmountB,
-        uint256 _minTokenA,
-        uint256 _minTokenB,
-        address _beneficiary
+        uint256 _minimumLiquidityA,
+        uint256 _minimumLiquidityB,
+        address _beneficiaryAddress
     )
         internal
         returns (uint256)
@@ -140,12 +144,10 @@ contract LiquidityMaker is LiquidityHelper {
         ) = pair.getReserves();
 
         uint256 swapAmount = pair.token0() == _tokenA
-            ? getSwapAmount(reserve0, _depositAmountA)
-            : getSwapAmount(reserve1, _depositAmountA);
+            ? getSwapAmount(reserve0, _initialAmountA)
+            : getSwapAmount(reserve1, _initialAmountA);
 
-        // uint256[] memory swapResult =
-
-        uint256[] memory swapResults = _swap(
+        uint256[] memory swapResults = _swapTokens(
             _tokenA,
             _tokenB,
             swapAmount,
@@ -153,160 +155,113 @@ contract LiquidityMaker is LiquidityHelper {
         );
 
         emit SwapResults(
+            _tokenA,
+            _tokenB,
             swapResults[0],
             swapResults[1]
         );
 
-        uint256 lpTokenAmount = _addLiquidity(
+        _addLiquidity(
             _tokenA,
             _tokenB,
-            _minTokenA, // swapResult[0],
-            _minTokenB, // swapResult[1],
-            _beneficiary
-        );
-
-        emit LiquidityAdded(
-            lpTokenAmount
+            swapResults[0],
+            swapResults[1],
+            _minimumLiquidityA,
+            _minimumLiquidityB,
+            _beneficiaryAddress
         );
 
         return swapAmount;
     }
 
-    function stakeLiquidity(
-        address _tokenA,
-        address _tokenB,
-        uint256 _depositAmountA,
-        uint256 _expectedAmountB
-        // uint256 _minTokenA,
-        // uint256 _minTokenB
-        // address _verseFarm
-    )
-        external
-        returns (uint256 swapAmount)
-    {
-        ISwapsERC20(_tokenA).transferFrom(
-            msg.sender,
-            address(this),
-            _depositAmountA
-        );
-
-        ISwapsPair pair = _getPair(
-            _tokenA,
-            _tokenB
-        );
-
-        (
-            uint256 reserve0,
-            uint256 reserve1,
-        ) = pair.getReserves();
-
-        swapAmount = pair.token0() == _tokenA
-            ? getSwapAmount(reserve0, _depositAmountA)
-            : getSwapAmount(reserve1, _depositAmountA);
-
-        uint256[] memory swapResult = _swap(
-            _tokenA,
-            _tokenB,
-            swapAmount,
-            _expectedAmountB
-        );
-
-        uint256 liquidity = _addLiquidity(
-            _tokenA,
-            _tokenB,
-            swapResult[0],
-            swapResult[1],
-            address(this)
-        );
-
-        emit LiquidityAdded(
-            liquidity
-        );
-
-        // _farmDeposit(
-        // );
-    }
-
-    function _swap(
-        address _fromToken,
-        address _toToken,
-        uint256 _swapAmount,
+    /**
+     * @dev
+     * Uses swapExactTokensForTokens to split provided value
+     * 1. Swaps optimal amount from _tokenIn to _tokenOut
+     * return swap amounts as a result (input and ouput)
+    */
+    function _swapTokens(
+        address _tokenIn,
+        address _tokenOut,
+        uint256 _swapAmountIn,
         uint256 _expectedAmountOut
     )
-        internal
+        private
         returns (uint256[] memory)
     {
-        ISwapsERC20(_fromToken).approve(
+        ISwapsERC20(_tokenIn).approve(
             ROUTER_ADDRESS,
-            _swapAmount
+            MAX_VALUE
         );
 
-        address[] memory path = new address[](2);
-        path = new address[](2);
-
-        path[0] = _fromToken;
-        path[1] = _toToken;
-
         return ROUTER.swapExactTokensForTokens(
-            _swapAmount,
+            _swapAmountIn,
             _expectedAmountOut,
-            path,
+            _makePath(
+                _tokenIn,
+                _tokenOut
+            ),
             address(this),
             block.timestamp
         );
     }
 
+    /**
+     * @dev
+     * Adds liquidity for _tokenA and _tokenB pair
+     * can send LP tokens to _beneficiary address
+    */
     function _addLiquidity(
         address _tokenA,
         address _tokenB,
+        uint256 _amountA,
+        uint256 _amountB,
         uint256 _minTokenA,
         uint256 _minTokenB,
-        address _recipient
+        address _beneficiary
     )
-        internal
-        returns (uint256)
+        private
     {
-        uint256 balanceA = ISwapsERC20(_tokenA).balanceOf(
-            address(this)
-        );
-
-        uint256 balanceB = ISwapsERC20(_tokenB).balanceOf(
-            address(this)
-        );
-
-        ISwapsERC20(_tokenA).approve(
-            ROUTER_ADDRESS,
-            balanceA
-        );
-
         ISwapsERC20(_tokenB).approve(
             ROUTER_ADDRESS,
-            balanceB
+            _amountB
         );
 
         (
-            ,
-            ,
-            uint256 liquidity
+            uint256 tokenAmountA,
+            uint256 tokenAmountB,
+            uint256 tokenAmountLP
         ) = ROUTER.addLiquidity(
             _tokenA,
             _tokenB,
-            balanceA,
-            balanceB,
+            _amountA,
+            _amountB,
             _minTokenA,
             _minTokenB,
-            _recipient,
+            _beneficiary,
             block.timestamp
         );
 
-        return liquidity;
+        emit LiquidityAdded(
+            tokenAmountA,
+            tokenAmountB,
+            tokenAmountLP,
+            _tokenA,
+            _tokenB,
+            _beneficiary
+        );
     }
 
+    /**
+     * @dev
+     * Read address of the pair
+     * by calling FACTORY contract
+    */
     function _getPair(
         address _tokenA,
         address _tokenB
     )
-        internal
+        private
         view
         returns (ISwapsPair)
     {
@@ -320,13 +275,42 @@ contract LiquidityMaker is LiquidityHelper {
 
     /**
      * @dev
-     *
+     * Allows to wrap Ether
+     * by calling WETH contract
     */
     function _wrapEther(
         uint256 _amount
     )
         private
     {
-        WETH.deposit{value: _amount}();
+        WETH.deposit{
+            value: _amount
+        }();
+    }
+
+    /**
+     * @dev
+     * Allows to cleanup any tokens stuck
+     * in the contract as leftover dust or
+     * if accidentally sent to the contract
+    */
+    function cleanUp(
+        ISwapsERC20 _token
+    )
+        external
+    {
+        uint256 balance = _token.balanceOf(
+            address(this)
+        );
+
+        _token.transfer(
+            FACTORY.feeTo(),
+            balance
+        );
+
+        emit CleanUp(
+            balance,
+            _token
+        );
     }
 }
