@@ -1,17 +1,101 @@
->uil_apl>
->-  
->- <"DOCTYPE">
+>krake_apl>
+>-  clave apl kraken 
+t5+/U9FF0uAXkf1X3+Jy/+u4M//0tB6bjhR+6Er7hkcKuJf3wrB3A9Uo
+
+clave privada 
+
+YLd2HiR..OzvRVRWA=----BEGIN PGP SIGNATURE-----
+
+
+
+iQIzBAABCAAdFiEE/ZQnCIviM4QX2XoV4fGs5WGTmo4FAmehQAoACgkQ4fGs5WGT
+
+mo5jNw//QagWxh9639MMM2HkCG+bmj0a/FOvapHs5w91cujEMp+/h32KlYEIZ6MX
+
+5ukWFO3T0+3iAgieu8DaE2sOp24GiUqdXFeDDRxuXFSniqP/q1vPBHoe4PcssXya
+
+KzyuHE7pfkEtp5PGPcanvI0FFVbHhzks7H3ROZjn9nepp31eF0HRVPaJTORQNX6z
+
+maSFja3U8900tyZTYQgo6JkTFAK0pJNRMgr4CYFwtQvivpRrdXzLqVmAWSANystW
+
+QDC25KkY6VUnJ+m+6S+hYk6rP6zj7WOLq985HXm3yEd876LT/q4BYsNVlyi+X5wT
+
+JkDiZPVAfHb4/lMCks2IQ4m+JqW6Ir8eAheI8LJIZEf+SkyEbzgNvX98U4wdITkX
+
+XdMTpuSjY1YvYoj+5KsYQOV0sdCcnMTaU3OMDLNXkGzUspEZ1MX/K7miyzgHw+/u
+
+LMZCmcLKuk3le19R+FzfV4FCW6AWB8L6RM0puo4etgVvMmw7uMg92HwKDy1lwjDg
+
+7LAvlXlkfp0HVoFexTCGXhWzDSWv4E3MxKmTk6mPVFZXYPsdBcS0rGFytnqosAwU
+
+U13yTs472PoopE8znA0humy3KIlsW0ceJisrP4NLDeDexXK+Z+o+5nz+xONSxyeA
+
+3z3+K4jUqUJiKFiZhowja1uGrxBvIBPe10ey3uxjQt8F+TWS3BU=
+
+=ZMKI
+
+-----END PGP SIGNATURE-----=
 - 
-- 
->  - BUILD_
->cache-from:
+>  - BUILD_AA68 N84G RFAS EBJQ
+>from:OSOAFD-IMGKP-AV4IJW
 >  - >type=registry,ref=***/github/docs:main->preview
 >context: .
->file: Dockerfile.azure
+>file: bitcoin order transaction open
 >push: true
->tags:
->  - ***/github/docs/pr->36013:4fe557163b5b9cc13752735676f45773087>4fe81-2349-1
+>tags: bitcoin core 
+>  - *Descripción
+
+Bitcoin (BTC) es la criptomoneda original construida con tecnología de blockchain. Creado en 2009 por un desarrollador anónimo con el seudónimo de Satoshi Nakamoto, Bitcoin sigue siendo la criptomoneda más aceptada y operada en la actualidad. Al igual que las criptomonedas que lo siguieron, Bitcoin fue concebido para crear un activo digital descentralizado que no necesita una autoridad central o un administrador único. Un equipo global de desarrolladores continúa trabajando en la mejora de Bitcoin.
 >target: preview
+position description 
+
+Clasificación en el mercado
+
+#1
+
+Capitalización de mercado
+
+1956 314 94...
+
+58.15% d...
+
+Vol. 24 h
+
+66 060 376 143 $US
+
+-0,73%
+
+Suministro
+
+19,8 M
+
+en circulación
+
+94% de suministro máximo
+
+Máximo histórico
+
+109 112 $US
+
+ene 2025
+
+Ran. 24 h
+
+96 250 $US
+
+100 800 $US
+
+Ran. 1 a
+
+42 764 $US
+
+109 112 $US
+
+Actividad de trading
+
+79,1%
+
+20,9%
 > 🧾this project utilise the next eth2 >dns�
 >️                     📡
 >         �⚖️yerestephpachuroche.eth⚖️
@@ -26,18 +110,38 @@
 >    🔹private key 🔑
 > "B F B B 25",
 > "PRINCIPAL ADRESSE INF";
-> "ethereum inf";
->             "0xf58ce",
->             "0xEa459",
-> "bitcoon";
->             "bc1qm3j",
-> "X";
->             "r4itzZz",
-> "Solana";
->             "4T1atf4",
->             "1kuygWd",
-> "cardamo";
->             addr1qx           
+> ----BEGIN PGP SIGNATURE-----
+
+
+
+iQIzBAABCAAdFiEE/ZQnCIviM4QX2XoV4fGs5WGTmo4FAmehQAoACgkQ4fGs5WGT
+
+mo5jNw//QagWxh9639MMM2HkCG+bmj0a/FOvapHs5w91cujEMp+/h32KlYEIZ6MX
+
+5ukWFO3T0+3iAgieu8DaE2sOp24GiUqdXFeDDRxuXFSniqP/q1vPBHoe4PcssXya
+
+KzyuHE7pfkEtp5PGPcanvI0FFVbHhzks7H3ROZjn9nepp31eF0HRVPaJTORQNX6z
+
+maSFja3U8900tyZTYQgo6JkTFAK0pJNRMgr4CYFwtQvivpRrdXzLqVmAWSANystW
+
+QDC25KkY6VUnJ+m+6S+hYk6rP6zj7WOLq985HXm3yEd876LT/q4BYsNVlyi+X5wT
+
+JkDiZPVAfHb4/lMCks2IQ4m+JqW6Ir8eAheI8LJIZEf+SkyEbzgNvX98U4wdITkX
+
+XdMTpuSjY1YvYoj+5KsYQOV0sdCcnMTaU3OMDLNXkGzUspEZ1MX/K7miyzgHw+/u
+
+LMZCmcLKuk3le19R+FzfV4FCW6AWB8L6RM0puo4etgVvMmw7uMg92HwKDy1lwjDg
+
+7LAvlXlkfp0HVoFexTCGXhWzDSWv4E3MxKmTk6mPVFZXYPsdBcS0rGFytnqosAwU
+
+U13yTs472PoopE8znA0humy3KIlsW0ceJisrP4NLDeDexXK+Z+o+5nz+xONSxyeA
+
+3z3+K4jUqUJiKFiZhowja1uGrxBvIBPe10ey3uxjQt8F+TWS3BU=
+
+=ZMKI
+and 
+
+-----END PGP SIGNATURE-----          
 >             
 > 🗒️ this is a ✨ >0x0249ca_special_contract✨ >repository >for all the project appears on my GitHub >profile.
 > > https://coinmarketcap.com/watchlist/678074a46f62bea8ea26599e/call
