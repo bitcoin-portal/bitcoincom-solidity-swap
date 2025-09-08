@@ -1,36 +1,13 @@
-// SPDX-License-Identifier: -- BCOM --
+// SPDX-License-Identifier: BCOM
 
-pragma solidity =0.8.23;
+pragma solidity ^0.8.19;
 
 import "./IERC20.sol";
 
 contract LiquidityHelper {
 
-    uint256 constant MAX_VALUE = type(uint256).max;
-
     /**
-     * @dev
-     * Prepares path for the swap
-     */
-    function _makePath(
-        address _tokenIn,
-        address _tokenOut
-    )
-        internal
-        pure
-        returns (address[] memory path)
-    {
-        path = new address[](2);
-
-        path[0] = _tokenIn;
-        path[1] = _tokenOut;
-
-        return path;
-    }
-
-    /**
-     * @dev
-     * Allows to execute transferFrom for a token
+     * @dev Allows to execute transferFrom for a token
      */
     function _safeTransferFrom(
         address _token,
@@ -42,7 +19,7 @@ contract LiquidityHelper {
     {
         IERC20 token = IERC20(_token);
 
-        _callOptionalReturn(
+        callOptionalReturn(
             _token,
             abi.encodeWithSelector(
                 token.transferFrom.selector,
@@ -53,7 +30,7 @@ contract LiquidityHelper {
         );
     }
 
-    function _callOptionalReturn(
+    function callOptionalReturn(
         address _token,
         bytes memory _data
     )
@@ -105,7 +82,7 @@ contract LiquidityHelper {
 
     /**
      * @dev
-     * Calculates square root of the _y number
+     *
     */
     function _sqrt(
         uint256 _y
